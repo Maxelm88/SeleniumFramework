@@ -1,6 +1,5 @@
 package helpers.common;
 
-import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.UnexpectedTagNameException;
@@ -65,14 +64,21 @@ public class CommonActions {
         }
     }
 
-    public static void clickElement(WebElement element, String desc) {
+    public static void clickElement (WebElement  element, String desc){
+        clickElement(element, desc, true);
+    }
+
+
+    public static void clickElement(WebElement element, String desc, boolean scroll) {
         try {
             pauseFor(1);
             if (!element.isEnabled()) {
                 //common.reporter
                 System.out.println("Element [" + desc + "] jest wyłączony");
             }
-            scrollToElement(element);
+            if (scroll) {
+                scrollToElement(element);
+            }
             if (element.isDisplayed()) {
                 element.click();
                 //common.reporter
@@ -83,34 +89,24 @@ public class CommonActions {
         }
     }
 
-    static String getElementDescription(WebElement element) {
+    public static void clickElement(By by, String desc, boolean scroll){
         try {
-            if (element == null) return null;
-            if (element.getAttribute("text") != null && !"".equals(element.getAttribute("text"))) {
-                return element.getAttribute("text");
+            WebElement element = getElement(by);
+            pauseFor(1);
+            if(!element.isEnabled()){
+                //reporte fail
+                System.out.println("Element [" + desc + "] jest wyłączony");
             }
-            if (element.getAttribute("value") != null && !"".equals(element.getAttribute("value"))) {
-                return element.getAttribute("value");
+            if (element.isDisplayed()){
+                clickElement(element, desc, scroll);
             }
-            if (element.getAttribute("aria-label") != null && !"".equals(element.getAttribute("aria-label"))) {
-                return element.getAttribute("aria-label");
-            }
-            String[] s = element.toString().split("->");
-            if (s.length >= 2) {
-                if (s[1].endsWith("]") && (StringUtils.countMatches(s[1], '[') + 1) == StringUtils.countMatches(s[1], ']')) {
-                    return s[1].substring(0, s[1].length() - 1);
-                } else return s[1];
-            } else {
-                String el = element.toString();
-                if (el.endsWith("]") && (StringUtils.countMatches(el, ']') + 1) == StringUtils.countMatches(el, ']')) {
-                    return el.substring(0, el.length() - 1);
-                } else return el;
-            }
-        } catch (WebDriverException e) {
-            handleWebDriverExceptions(e, element.toString());
-            return null;
+        }
+        catch (WebDriverException e){
+            handleWebDriverExceptions(e, desc);
         }
     }
+
+
 
     public static void clickButton(WebElement element, String desc) {
         try {
@@ -184,6 +180,33 @@ public class CommonActions {
         }
     }
 
+    public static void selectDropdownListOption(By by, String option, String desc) {
+        try {
+            WebElement element = getElement(by);
+            if (!element.getTagName().equals("select")) {
+                handleWebDriverExceptions(new UnexpectedTagNameException("select", element.getTagName()), desc);
+            }
+            if (!element.isEnabled()) {
+                //reporter fail
+                System.out.println("Lista rozwijana " + desc + " jest wyłączona");
+                throw new ElementNotInteractableException("Lista rozwijana " + desc + " jest wyłączonoa");
+            }
+            scrollToElement(element);
+            if (element.isDisplayed()) {
+                element.click();
+                pauseFor(1);
+                element.findElement(By.xpath("option[contains(text(), \"" + option + "\"")).click();
+                if (waitUntilElementPresent(By.xpath("//div[contains(@class, 'AFNoteWindowShortDesc')]"), 1) != null) {
+                    pressKey(Keys.ESCAPE);
+                }
+                //reporter pass
+                System.out.println("Wybrano opcje " + option + " z listy [" + desc + "]");
+            }
+        } catch (WebDriverException e) {
+            handleWebDriverExceptions(e, desc + " ->" + option);
+        }
+    }
+
     public static void pressKey(CharSequence... chars) {
         performAction(new Actions(driver).sendKeys(chars), "Wpisanie tekstu " + Arrays.toString(chars));
     }
@@ -213,6 +236,30 @@ public class CommonActions {
             }
         } catch (WebDriverException e) {
             handleWebDriverExceptions(e, desc);
+        }
+    }
+
+    public static void clickElementIfVisible(By by, int timeoutInSeconds, String desc){
+        clickElementIfVisible(by, timeoutInSeconds, desc, true);
+    }
+
+    public static void clickElementIfVisible(By by, int timeoutInSeconds, String desc, boolean scroll) {
+        try {
+            if (waitUntilElementPresent(by, timeoutInSeconds) != null) {
+                clickElement(by, desc, scroll);
+            }
+        } catch (WebDriverException e) {
+            handleWebDriverExceptions(e, desc);
+        }
+    }
+
+    public static void refreshSite(){
+        try{
+            driver.navigate().refresh();
+        }
+        catch (WebDriverException e)
+        {
+            handleWebDriverExceptions(e, "refresh");
         }
     }
 }

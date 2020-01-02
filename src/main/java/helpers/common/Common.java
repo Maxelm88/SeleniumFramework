@@ -1,9 +1,13 @@
 package helpers.common;
 
+import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.safari.ConnectionClosedException;
 import org.openqa.selenium.support.ui.UnexpectedTagNameException;
+
+import java.util.Collections;
+import java.util.List;
 
 public class Common {
     public static WebDriver driver;
@@ -94,6 +98,86 @@ public class Common {
         } else {
             //reporter fail
             System.out.println("Wystapił  nieoczekiwany błąd WebDrivera. Rozwiń, by zobaczyć szczegóły");
+        }
+    }
+
+    public static WebElement getElement(By by) {
+        return getElement(by, getElementDescription(by));
+    }
+
+    public static WebElement getElement(By by, String desc) {
+        WebElement element = null;
+        try {
+            element = driver.findElement(by);
+        } catch (WebDriverException e){
+            handleWebDriverExceptions(e, desc);
+        }
+        return element;
+    }
+
+    public static List<WebElement> getElements(By by, String desc){
+        List<WebElement> elementList;
+        try{
+            elementList = driver.findElements(by);
+        }
+        catch (WebDriverException e) {
+            handleWebDriverExceptions(e, desc);
+            return Collections.emptyList();
+        }
+        return elementList;
+    }
+
+    static String getElementDescription(WebElement element) {
+        try {
+            if (element == null) return null;
+            if (element.getAttribute("text") != null && !"".equals(element.getAttribute("text"))) {
+                return element.getAttribute("text");
+            }
+            if (element.getAttribute("value") != null && !"".equals(element.getAttribute("value"))) {
+                return element.getAttribute("value");
+            }
+            if (element.getAttribute("aria-label") != null && !"".equals(element.getAttribute("aria-label"))) {
+                return element.getAttribute("aria-label");
+            }
+            String[] s = element.toString().split("->");
+            if (s.length >= 2) {
+                if (s[1].endsWith("]") && (StringUtils.countMatches(s[1], '[') + 1) == StringUtils.countMatches(s[1], ']')) {
+                    return s[1].substring(0, s[1].length() - 1);
+                } else return s[1];
+            } else {
+                String el = element.toString();
+                if (el.endsWith("]") && (StringUtils.countMatches(el, ']') + 1) == StringUtils.countMatches(el, ']')) {
+                    return el.substring(0, el.length() - 1);
+                } else return el;
+            }
+        } catch (WebDriverException e) {
+            handleWebDriverExceptions(e, element.toString());
+            return null;
+        }
+    }
+
+    static String getElementDescription(By by){
+        try{
+            WebElement el = driver.findElement(by);
+            if(el.getAttribute("text") != null && !"".equals(el.getAttribute("text"))) return el.getAttribute("text");
+            if(el.getAttribute("value") != null && !"".equals(el.getAttribute("value"))) return el.getAttribute("value");
+            if(el.getAttribute("aria=label") !=null && !"".equals(el.getAttribute("aria-label"))) return el.getAttribute("aria-label");
+        }
+        catch (WebDriverException ignored) {
+        }
+
+        String[] s = by.toString().split("->");
+        if(s.length >= 2) {
+            if(s[1].endsWith("]") && (StringUtils.countMatches(s[1], '[') + 1) == StringUtils.countMatches(s[1], ']')) {
+                return s[1].substring(0, s[1].length()-1);
+            }
+            else return s[1];
+        }
+        else {
+            String el = by.toString();
+            if(el.endsWith("]") && (StringUtils.countMatches(el, '[') + 1) == StringUtils.countMatches(el, ']')){
+                return el.substring(0, el.length()-1);
+            } else return el;
         }
     }
 }
