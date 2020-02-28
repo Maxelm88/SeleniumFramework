@@ -1,5 +1,7 @@
-package helpers.common;
+package helpers;
 
+import helpers.reporter.ReportManager;
+import helpers.reporter.ReportManagerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.openqa.selenium.*;
@@ -13,14 +15,15 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static helpers.common.CommonActions.refreshSite;
-import static helpers.common.CommonWaits.waitUntilElementPresent;
-import static helpers.common.CommonWaits.waitUntilElementVisible;
+import static helpers.CommonActions.refreshSite;
+import static helpers.reporter.ReportManagerFactory.buildSkippingReporter;
 
 public class Common {
     public static WebDriver driver;
     private static StopWatch stopWatch;
     public static int timeoutInSeconds = 60;
+
+    private static ReportManager reporter;
 
     public static WebDriver setUpClass() {
         System.setProperty("webdriver.chrome.driver", ".\\driver\\chromedriver.exe");
@@ -195,7 +198,7 @@ public class Common {
     }
 
     public static void verifyElementDisplayed(WebElement element, String logPassMsg, String logFailMsg) {
-        if (waitUntilElementVisible(element, 30) != null) {
+        if (CommonWaits.waitUntilElementVisible(element, 30) != null) {
             //reporter logpass
             System.out.println(logPassMsg);
         } else {
@@ -205,11 +208,11 @@ public class Common {
     }
 
     public static boolean isElementPresent(By by, int timeoutsInSeconds) {
-        return waitUntilElementPresent(by, timeoutsInSeconds) != null;
+        return CommonWaits.waitUntilElementPresent(by, timeoutsInSeconds) != null;
     }
 
     public static boolean isElementVisible(WebElement element, int timeoutInSeconds) {
-        return waitUntilElementVisible(element, timeoutInSeconds) != null;
+        return CommonWaits.waitUntilElementVisible(element, timeoutInSeconds) != null;
     }
 
     public static void startTimeCounter() {
@@ -356,5 +359,14 @@ public class Common {
         }
         Date date = new Date();
         return dateFormat.format(date);
+    }
+
+    public static ReportManager reporter() {
+        if (reporter == null) initSkippingReporter(ReportManagerFactory.ReporterType.ALLURE);
+        return reporter;
+    }
+
+    public static void initSkippingReporter(ReportManagerFactory.ReporterType reporterType) {
+        reporter = buildSkippingReporter(reporterType);
     }
 }
