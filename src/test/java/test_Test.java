@@ -6,12 +6,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 
-import static helpers.Common.openUrl;
-import static helpers.Common.quitDriver;
-import static helpers.Common.setUpClass;
+import static helpers.Common.*;
 import static helpers.CommonActions.clickElement;
 import static helpers.CommonActions.enterIntoElement;
-import static org.junit.Assert.assertTrue;
 
 @DisplayName("Testowanie raportu")
 public class test_Test {
@@ -38,10 +35,14 @@ public class test_Test {
 
     public void krok1OtworzenieStrony() {
         openUrl(true, "https://www.google.pl/");
-        enterIntoElement(GoogleSearchPage.poleWyszukania, "lala", "Pole szukania");
+        enterIntoElement(GoogleSearchPage.poleWyszukania, "lala", "Pole szukania", false);
         clickElement(GoogleSearchPage.przyciskWyszukaj, "Wyszukaj");
         clickElement(GoogleSearchPage.next, "next");
         String title = driver.getTitle();
-        assertTrue(title.contains("lallla"));
+        if(title.contains("lalla")) {
+            reporter().logPass("Prawidłowy tytuł sttrony");
+        } else {
+            reporter().logFail("Nieprawidłowy tytuł strony");
+        }
     }
 }

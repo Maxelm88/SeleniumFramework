@@ -1,23 +1,31 @@
 package helpers.reporter;
 
 import helpers.throwables.GeneralStepException;
+import helpers.throwables.NoTestDataException;
 import helpers.throwables.TestPendingException;
 import io.qameta.allure.Allure;
+import io.qameta.allure.model.Parameter;
 import io.qameta.allure.model.Status;
 import io.qameta.allure.model.StatusDetails;
-import lombok.NonNull;
+import io.qameta.allure.model.StepResult;
 import lombok.extern.log4j.Log4j;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
+import javax.annotation.Nonnull;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static helpers.Common.driver;
+import static helpers.Common.getAlertText;
 
 @Log4j
 public class AllureReportManager  extends ReportManager {
@@ -127,7 +135,7 @@ public class AllureReportManager  extends ReportManager {
         }
     }
 
-    private void runStepWithDescription(@NonNull Method m, Object... args) {
+    private void runStepWithDescription(@Nonnull Method m, Object... args) {
         try {
             m.invoke(this, args);
         } catch (IllegalAccessException | InvocationTargetException e) {
@@ -205,5 +213,83 @@ public class AllureReportManager  extends ReportManager {
             if(elem.getMethodName().contains("testMethod")) break;
         }
         return stackString.append("\n\n").toString();
+    }
+
+    private void reportPassStep(){
+        String uuid = UUID.randomUUID().toString();
+        StepResult sr = new StepResult();
+        sr.setStatus(Status.PASSED);
+
+        log.info(text);
+        byte[] scr = null;
+        if(screen) scr = saveScreenshot();
+
+        if(Allure.getLifecycle().getCurrentTestCase().isPresent()) {
+            sr.setName(text);
+            Allure.getLifecycle().startStep(uuid, sr);
+            if(scr != null && manager != null) {
+                Allure.getLifecycle().addAttachment("screenshot", "image/png", null, scr);
+            }
+            Allure.getLifecycle().stopStep(uuid);
+        }
+    }
+
+    private void reportFailStep(Throwable t) {
+        String uuid = UUID.randomUUID().toString();
+        StepResult sr = new StepResult();
+        sr.setStatus(Status.FAILED);
+
+        if(text == null || text.equals("")) {
+            log.error(getStackTrace(t));
+            sr.setName(t.getMessage());
+        } else {
+            log.error(text);
+            sr.setName(text);
+        }
+
+        String alertText = (t == null || t instanceof TimeoutException) ? getAlertText(false) : null;
+
+        if(t != null || (alertText != null && !alertText.equals(text))) {
+            Parameter p;
+            List<Parameter> params = new ArrayList<>();
+            if(t != null) {
+                p = new Parameter();
+                p.setName("Thrown");
+                p.setValue(t.toString());
+                params.add(p);
+            }
+
+            sr.setParameters(params);
+        }
+
+        byte[] scr = saveScreenshot();
+
+        if(Allure.getLifecycle().getCurrentTestCase().isPresent()) {
+            Allure.getLifecycle().startStep(uuid, sr);
+            if(manager != null && !(t instanceof NoTestDataException) && scr != null)
+                Allure.getLifecycle().addAttachment("Screenshot", "image/png", null, scr);
+            Allure.getLifecycle().stopStep(uuid);
+
+            try{
+                closeReportWithStatus(Status.FAILED, text, t!= null ? getStackTrace(t) + "\n\nOstrzeżenie:\n\n" + printWarnStack() : text + "\n\nOstrzeżenia:\n\n" + printWarnStack());
+            } catch (NullPointerException e) {
+                log.warn("Can't manually set description and status: null uuid");
+            }
+
+            getBrowserLogs(driver);
+            //getNetworkLogs(driver);
+            throw new AssertionError(text, t);
+        }
+    }
+
+    private String getStackTrace(Throwable t) {
+        try(ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            PrintWriter printWriter = new PrintWriter(baos);
+            t.printStackTrace(printWriter);
+            printWriter.flush();
+            return baos.toString();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to get stack trace", e);
+        }
     }
 }

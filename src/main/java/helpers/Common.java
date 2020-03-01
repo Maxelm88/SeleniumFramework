@@ -1,12 +1,18 @@
 package helpers;
 
+import helpers.dictionary.Browser;
+import helpers.dictionary.BrowserArg;
 import helpers.reporter.ReportManager;
 import helpers.reporter.ReportManagerFactory;
+import io.qameta.allure.Step;
+import lombok.extern.log4j.Log4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.openqa.selenium.*;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.safari.ConnectionClosedException;
 import org.openqa.selenium.support.ui.UnexpectedTagNameException;
 
@@ -16,39 +22,47 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static helpers.CommonActions.refreshSite;
+import static helpers.reporter.ReportManagerFactory.buildReporter;
 import static helpers.reporter.ReportManagerFactory.buildSkippingReporter;
 
+@Log4j
 public class Common {
     public static WebDriver driver;
     private static StopWatch stopWatch;
     public static int timeoutInSeconds = 60;
+    private static final String CHROMEPATH = ".\\driver\\chromedriver.exe";
 
     private static ReportManager reporter;
 
+    @Step("Inicjalizacja Webdriver oraz przekazanie testu do realizacji")
     public static WebDriver setUpClass() {
-        System.setProperty("webdriver.chrome.driver", ".\\driver\\chromedriver.exe");
-        driver = new ChromeDriver();
-        driver.manage().window().maximize();
+
+        driver = initLocalDriver(Browser.CHROME, BrowserArg.INCOGNITO, ReportManagerFactory.ReporterType.ALLURE);
+
+
+//        System.setProperty("webdriver.chrome.driver", CHROMEPATH);
+//        driver = new ChromeDriver();
+//        driver.manage().window().maximize();
         return driver;
     }
 
     public static void quitDriver() {
+        log.info("Zamykanie Webdrivera...");
         if (driver != null) {
             driver.quit();
         }
     }
 
+    @Step("Przejście do url /  endpoint {url}")
     public static void openUrl(boolean czyKompletnyUrl, String url) {
         if (czyKompletnyUrl) {
             driver.get(url);
-            //reporter pass
-            System.out.println("Uruchomienie strony: " + url);
+            reporter().logPass("Uruchomienie strony: " + url);
         } else {
             String[] logowanieUrlSplit = url.split("/");
             String aktualnyURL = "https://" + logowanieUrlSplit[2] + url;
             driver.get(aktualnyURL);
-            //reporter pass
-            System.out.println("Uruchomienie strony: " + aktualnyURL);
+            reporter().logPass("Uruchomienie strony: " + aktualnyURL);
         }
     }
 
@@ -64,58 +78,60 @@ public class Common {
     public static void handleWebDriverExceptions(RuntimeException e, String desc) {
         if (!(e instanceof WebDriverException)) throw e;
 
-        //reporter null
+        if (reporter == null) initSkippingReporter(ReportManagerFactory.ReporterType.ALLURE);
 
         if (e instanceof ConnectionClosedException) {
-            //reporter fail
-            System.out.println("Utracono połączenie ze sterownikiem Safari.");
+            reporter().logFail("Utracono połączenie ze sterownikiem Safari.", e);
         } else if (e instanceof ElementClickInterceptedException || e.getMessage().contains("Other element void receive the click")) {
-            //reporter fail
-            System.out.println("Kliknięcie w " + desc + " zostało przechwycone przez inny element. " + "Upewnij się, że lement w momencie kliknięcia nie jest zasłonięty.");
+            reporter().logFail("Kliknięcie w " + desc + " zostało przechwycone przez inny element. " + "Upewnij się, że lement w momencie kliknięcia nie jest zasłonięty.", e);
         } else if (e instanceof ElementNotVisibleException) {
-            //reporter fail
-            System.out.println("Element " + desc + " nie jest widoczny na ekranie.");
+            reporter().logFail("Element " + desc + " nie jest widoczny na ekranie.", e);
         } else if (e instanceof ElementNotInteractableException) {
-            //reporter fail
-            System.out.println("Interakcja z elementem " + desc + " nie jest możliwa.");
+            reporter().logFail("Interakcja z elementem " + desc + " nie jest możliwa.", e);
         } else if (e instanceof ElementNotSelectableException) {
-            //reporter fail
-            System.out.println("Nie jest możliwe wybranie elementu " + desc + ".");
+            reporter().logFail("Nie jest możliwe wybranie elementu " + desc + ".", e);
         } else if (e instanceof InvalidSelectorException) {
-            //reporter fial
-            System.out.println("Selektor elementu " + desc + "jest nieprawidłowy.");
+            reporter().logFail("Selektor elementu " + desc + "jest nieprawidłowy.", e);
         } else if (e instanceof NoSuchElementException) {
-            //reporter fail
-            System.out.println("Element " + desc + "nie istnieje.");
+            reporter().logFail("Element " + desc + "nie istnieje.", e);
         } else if (e instanceof NoAlertPresentException) {
-            //reporter fail
-            System.out.println("Oczekiwano ostrzeżenia, ale żadnego nie znaleziono.");
+            reporter().logFail("Oczekiwano ostrzeżenia, ale żadnego nie znaleziono.", e);
         } else if (e instanceof JavascriptExecutor) {
-            //reporter fail
-            System.out.println("Błąd Javascriptu. Rozwiń aby zobaczyć szczegóły.");
+            reporter().logFail("Błąd Javascriptu. Rozwiń aby zobaczyć szczegóły.", e);
         } else if (e instanceof InvalidElementStateException) {
-            //reporter fail
-            System.out.println("Stan elementu " + desc + "nie pozwala na wykonanie żądanej akcji. Rozwiń by zobaczyć szczegóły.");
+            reporter().logFail("Stan elementu " + desc + "nie pozwala na wykonanie żądanej akcji. Rozwiń by zobaczyć szczegóły.", e);
         } else if (e instanceof StaleElementReferenceException) {
-            //reporter fail
-            System.out.println("Stan elementu " + desc + "już nie istnieje. Sprawdź czy nie zmienił się jego lokator.");
+            reporter().logFail("Stan elementu " + desc + "już nie istnieje. Sprawdź czy nie zmienił się jego lokator.", e);
         } else if (e instanceof UnhandledAlertException) {
-            //reporter fail
-            System.out.println("Nieobsłużone ostrzeżenie: " + /*getAllertText() +*/ ". Sprawdź log testu.");
+            reporter().logFail("Nieobsłużone ostrzeżenie: " + getAlertText(false) + ". Sprawdź log testu.", e);
         } else if (e instanceof TimeoutException) {
-            //reporter fail
-            System.out.println("Akcja nie została wykonana w podanym czasie. " +
+            reporter().logFail("Akcja nie została wykonana w podanym czasie. " +
                     "Jeśli oczekiwałeś na zmianę stanu elementu, " +
-                    "zweryfikuj warunki zmiany stanu lub przedłuż oczekiwanie.");
+                    "zweryfikuj warunki zmiany stanu lub przedłuż oczekiwanie.", e);
         } else if (e instanceof UnexpectedTagNameException) {
-            //reporter fail
-            System.out.println("Element " + desc + " posiada inny tag niż oczekiwano.");
+            reporter().logFail("Element " + desc + " posiada inny tag niż oczekiwano.", e);
         } else if (e instanceof SessionNotCreatedException) {
-            //reporter fail
-            System.out.println("Nie udało się utworzyć sesji testowej. Rozwiń aby zobaczyć szczegóły.");
+            reporter().logFail("Nie udało się utworzyć sesji testowej. Rozwiń aby zobaczyć szczegóły.", e);
         } else {
-            //reporter fail
-            System.out.println("Wystapił  nieoczekiwany błąd WebDrivera. Rozwiń, by zobaczyć szczegóły");
+            reporter().logFail("Wystapił  nieoczekiwany błąd WebDrivera. Rozwiń, by zobaczyć szczegóły", e);
+        }
+    }
+
+    public static String getAlertText(boolean failOnFound) {
+        if (driver == null || driver.toString().contains("null")) return null;
+        try {
+            Alert a = driver.switchTo().alert();
+            String alertText = a.getText();
+            a.dismiss();
+            if (failOnFound) {
+                reporter().logFail("Komunikat " + alertText);
+            }
+            return alertText;
+        } catch (NoAlertPresentException e) {
+            return null;
+        } catch (WebDriverException e) {
+            log.warn("Failed to fetch alert message", e);
+            return null;
         }
     }
 
@@ -197,13 +213,12 @@ public class Common {
         }
     }
 
+    @Step("Sprawdzenie widoczności elementu")
     public static void verifyElementDisplayed(WebElement element, String logPassMsg, String logFailMsg) {
         if (CommonWaits.waitUntilElementVisible(element, 30) != null) {
-            //reporter logpass
-            System.out.println(logPassMsg);
+            reporter.logPass(logPassMsg);
         } else {
-            //reporter logfail
-            System.out.println(logFailMsg);
+            reporter.logFail(logFailMsg);
         }
     }
 
@@ -222,21 +237,18 @@ public class Common {
 
     public static void stopTimeCounter() {
         if (!stopWatch.isStarted()) {
-            //reporter warn
-            System.out.println("Problem z licznikiem czasu");
+            reporter.logWarn("Problem z licznikiem czasu");
         } else {
             stopWatch.stop();
             long pageLoadTime_ms = stopWatch.getTime();
             long pageLoadTime_seconds = pageLoadTime_ms / 1000;
-            //reporter p[ass
-            System.out.println("Całkowity czas wczytywania strony: " + pageLoadTime_seconds + " sek");
+            reporter.logPass("Całkowity czas wczytywania strony: " + pageLoadTime_seconds + " sek");
         }
     }
 
     public static void changeTimeout(int implicitlyWait) {
         driver.manage().timeouts().implicitlyWait(implicitlyWait, TimeUnit.SECONDS);
-        //reporter pass
-        System.out.println("implicitlyWait zmieniony na: " + implicitlyWait + "s");
+        reporter.logPass("implicitlyWait zmieniony na: " + implicitlyWait + "s");
     }
 
     public static void changeTimeout(int implicitlyWait, int pageLoadTimeout, int setScriptTimeout) {
@@ -257,10 +269,10 @@ public class Common {
         }
     }
 
+    @Step("Zmiana aktywnej karty")
     public static void switchToNewTab(boolean failIfNotOpened) {
         final String currentTabHandle = driver.getWindowHandle();
-        //log.info
-        System.out.println("Obecnie aktywna karta: " + currentTabHandle);
+        log.info("Obecnie aktywna karta: " + currentTabHandle);
         String title1 = driver.getTitle();
         try {
             int time = 20;
@@ -268,44 +280,38 @@ public class Common {
                 ArrayList<String> tabs = new ArrayList<>(driver.getWindowHandles());
                 pauseFor(1);
                 if (tabs.size() > 1) {
-                    //log info
-                    System.out.println("Nowa zakładka otwarta");
+                    log.info("Nowa zakładka otwarta");
                     String newTabHandle = driver.getWindowHandles()
                             .stream()
                             .filter(handle -> !handle.equals(currentTabHandle))
                             .findFirst()
                             .orElseThrow(IllegalStateException::new);
                     driver.switchTo().window(newTabHandle);
-                    //log info
-                    System.out.println("Zmiana aktywnej karty na: " + newTabHandle);
+                    log.info("Zmiana aktywnej karty na: " + newTabHandle);
                     changeTimeout(60, 60, 60);
                     try {
                         pauseFor(10);
                         if (!driver.getTitle().isEmpty()) {
                             String title2 = driver.getTitle();
-                            //reporter pass
-                            System.out.println("Zmieniono aktywną kartę z: " + currentTabHandle + " (tytuł: " + title1 + ") na: " + newTabHandle + " (tytuł: " + title2 + ").");
+                            reporter.logPass("Zmieniono aktywną kartę z: " + currentTabHandle + " (tytuł: " + title1 + ") na: " + newTabHandle + " (tytuł: " + title2 + ").");
                             changeTimeout(30, 30, 30);
                             break;
                         } else if (i < time - 1) {
-                            //reporter warn
-                            System.out.println("Pusty tytuł strony, odświeżenie i wycofanie...");
+                            reporter.logWarn("Pusty tytuł strony, odświeżenie i wycofanie...");
                             refreshSite();
                             driver.switchTo().window(currentTabHandle);
                         }
 
                     } catch (WebDriverException e) {
                         if (e instanceof TimeoutException || e.getMessage().contains("cannot determine loading status")) {
-                            //reporter fail
-                            System.out.println("Nowa zakładka otworzyła się niepoprawnie: nie można pobrać " + "tytułu strony. Sprawdź, czy strona załadowała się poprawnie.");
+                            reporter.logFail("Nowa zakładka otworzyła się niepoprawnie: nie można pobrać " + "tytułu strony. Sprawdź, czy strona załadowała się poprawnie.");
                         }
                         handleWebDriverExceptions(e, null);
                     }
                     changeTimeout(30, 30, 30);
                 }
                 if (i == time - 1 && (tabs.size() == 1) && failIfNotOpened) {
-                    //reporter fail
-                    System.out.println("Nowa zakładka nie została otwarta. Czas oczekiwania: " + time + "s");
+                    reporter.logFail("Nowa zakładka nie została otwarta. Czas oczekiwania: " + time + "s");
                 }
             }
 
@@ -314,6 +320,7 @@ public class Common {
         }
     }
 
+    @Step("Zmiana aktywnej karty")
     public static void switchToNewPopUp() {
         try {
             pauseFor(5);
@@ -327,16 +334,13 @@ public class Common {
             }
             driver.switchTo().window(subWindowHandler);
             if (parentWindowHandler.equals(subWindowHandler)) {
-                //log info
-                System.out.println("Zmieniono aktywność okna z: " + parentWindowHandler + " na: " + subWindowHandler);
+                log.info("Zmieniono aktywność okna z: " + parentWindowHandler + " na: " + subWindowHandler);
             } else {
-                //log info
-                System.out.println("Aktywność okna nie została zmieniona");
+                log.info("Aktywność okna nie została zmieniona");
             }
         } catch (Exception e) {
-            //log info
-            //reporter fail
-            System.out.println("Problem ze zmianą aktywności okna...");
+            if (e instanceof WebDriverException) handleWebDriverExceptions((WebDriverException) e, "window handles");
+            else reporter.logError("Problem ze zmianą aktywności karty", e);
         }
     }
 
@@ -368,5 +372,51 @@ public class Common {
 
     public static void initSkippingReporter(ReportManagerFactory.ReporterType reporterType) {
         reporter = buildSkippingReporter(reporterType);
+    }
+
+    public static WebDriver initLocalDriver(Browser browser, BrowserArg arg, ReportManagerFactory.ReporterType reporterType) {
+        try {
+            DesiredCapabilities caps = new DesiredCapabilities();
+            switch (arg) {
+                case HEADLESS:
+                    log.info("######### MODE HEADLESS ##########");
+                    switch (browser) {
+                        case CHROME:
+                            System.setProperty("webdriver.chrome.driver", CHROMEPATH);
+                            ChromeOptions chromeOptions = new ChromeOptions().merge(caps);
+                            chromeOptions.addArguments("-incognito");
+                            chromeOptions.addArguments("--headless");
+                            chromeOptions.addArguments("--disable-dev-shm-usage");
+                            chromeOptions.addArguments("--lang=" + "pl_PL");
+                            driver = new ChromeDriver(chromeOptions);
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Unknown browser " + browser);
+                    }
+                    break;
+                case INCOGNITO:
+                    log.info("######### MODE INCOGNITO ##########");
+                    switch (browser) {
+                        case CHROME:
+                            System.setProperty("webdriver.chrome.driver", CHROMEPATH);
+                            ChromeOptions chromeOptions = new ChromeOptions().merge(caps);
+                            chromeOptions.addArguments("-incognito");
+                            driver = new ChromeDriver(chromeOptions);
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Unknown browser " + browser);
+                    }
+                    break;
+            }
+        } catch (WebDriverException e) {
+            handleWebDriverExceptions(e, null);
+        }
+        driver.manage().window().maximize();
+        driver.manage().timeouts().pageLoadTimeout(timeoutInSeconds, TimeUnit.SECONDS);
+        driver.manage().timeouts().implicitlyWait(timeoutInSeconds, TimeUnit.SECONDS);
+        driver.manage().timeouts().setScriptTimeout(timeoutInSeconds,TimeUnit.SECONDS);
+        reporter = buildReporter(reporterType, driver);
+
+        return driver;
     }
 }
