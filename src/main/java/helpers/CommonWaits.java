@@ -1,5 +1,6 @@
 package helpers;
 
+import lombok.extern.log4j.Log4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.TimeoutException;
@@ -9,8 +10,12 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.concurrent.TimeUnit;
 
+import static helpers.Common.reporter;
+
+@Log4j
 public class CommonWaits {
 
+    //@Step("Oczekiwanie na  element")
     public static WebElement waitUntilElementPresent(By by, int timeoutInSeconds) {
         WebElement found;
         Common.driver.manage().timeouts().implicitlyWait(0, TimeUnit.MILLISECONDS);
@@ -24,10 +29,10 @@ public class CommonWaits {
         return found;
     }
 
+//    @Step("Oczekiwanie na widoczność elementu")
     public static WebElement waitUntilElementVisible(WebElement element, int timeoutInSeconds) {
         if (element == null) {
-            //reporter error
-            System.out.println("Cannot wait  for visibility of null element");
+            reporter().logError("Cannot wait  for visibility of null element");
         }
         WebElement found;
         Common.driver.manage().timeouts().implicitlyWait(0, TimeUnit.MILLISECONDS);
@@ -40,10 +45,10 @@ public class CommonWaits {
         return found;
     }
 
+//    @Step("Oczekiwanie na zniknięcie elementu")
     public static boolean waitUntilElementStale(WebElement element, int timeoutInSeconds) {
         if (element == null) {
-            //reporter error
-            System.out.println("Cannot wait  for staleness of null element");
+            reporter().logError("Cannot wait  for staleness of null element");
         }
         Common.driver.manage().timeouts().implicitlyWait(0, TimeUnit.MILLISECONDS);
         boolean isStale;
@@ -57,10 +62,10 @@ public class CommonWaits {
         return isStale;
     }
 
+//    @Step("Oczekiwanie na zniknięcie elementu")
     public static boolean waitUntilElementNotVisible(WebElement element, int timeoutInSeconds) {
         if (element == null) {
-            //reporter error
-            System.out.println("Cannot wait  for disappearance of null element");
+            reporter().logError("Cannot wait  for disappearance of null element");
         }
         Common.driver.manage().timeouts().implicitlyWait(0, TimeUnit.MILLISECONDS);
         boolean isNotVisible;
@@ -75,6 +80,7 @@ public class CommonWaits {
         return isNotVisible;
     }
 
+//    @Step("Oczekiwanie na zniknięcie elementu")
     public static boolean waitUntilElementNotVisible(By by, int timeoutInSeconds) {
         Common.driver.manage().timeouts().implicitlyWait(0, TimeUnit.MILLISECONDS);
         boolean isNotVisible;

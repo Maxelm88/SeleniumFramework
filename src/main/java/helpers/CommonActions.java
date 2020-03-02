@@ -3,6 +3,7 @@ package helpers;
 import helpers.throwables.FalseActionExecutionException;
 import io.qameta.allure.Step;
 import lombok.extern.log4j.Log4j;
+import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.UnexpectedTagNameException;
@@ -10,6 +11,7 @@ import org.openqa.selenium.support.ui.UnexpectedTagNameException;
 import java.util.Arrays;
 
 import static helpers.Common.getElement;
+import static helpers.Common.handleWebDriverExceptions;
 import static helpers.Common.reporter;
 
 @Log4j
@@ -78,6 +80,92 @@ public class CommonActions {
         }
     }
 
+    public static void enterIntoTextField(By by, String value, String desc) {
+        enterIntoTextField(getElement(by), value, desc, false);
+    }
+
+    @Step("Wpisanie wartości {value} w pole tekstowe {desc}")
+    public static void enterIntoTextField(WebElement element, String value, String desc, boolean requiredNotEmpty) {
+        if (requiredNotEmpty && StringUtils.isEmpty(value))
+            reporter().logFail("Wartość do wpisania w pole [" + desc + "] jest pusta");
+        try {
+            if (!element.getTagName().equals("input") ||
+                    !(element.getAttribute("type").equals("text") ||
+                            element.getAttribute("type").equals("password") ||
+                            element.getAttribute("type").equals("number")))
+                handleWebDriverExceptions(new UnexpectedTagNameException(
+                        "input with type 'text', 'password' or 'number'",
+                        element.getTagName() + "with type '" + element.getAttribute("type" + "'")), desc);
+            if (!element.isEnabled()) {
+                reporter().logFail("Pole tekstowe [" + desc + "] jest wyłączone");
+            }
+            scrollToElement(element);
+            if (element.isDisplayed()) {
+                element.clear();
+                element.sendKeys(value);
+                if (!(element.getAttribute("value").equals(value.trim()) || element.getText().equals(value.trim()))) {
+                    if (!(element.getAttribute("value").equals(value.trim()))) {
+                        reporter().logWarn("Nie wprowadzono tekstu " + value + " w pole tekstowe [" + desc + "]. Ponawiam...");
+                        element.clear();
+                        element.sendKeys(value);
+                        if (!(element.getAttribute("value").equals(value.trim()) || element.getText().equals(value.trim()))) {
+                            if (!(element.getAttribute("value").equals(value.trim())))
+                                reporter().logFail("Nie wpisano tekstu '" + value + "' w pole tekstowe [" + desc + "] (wpisano: '" + element.getAttribute("value") + "')",
+                                        new FalseActionExecutionException("enterIntoTextField(" + desc + ")"));
+                            else
+                                reporter().logFail("Nie wpisano tekstu '" + value + "' w pole tekstowe [" + desc + "] (wpisano: '" + element.getText() + "')",
+                                        new FalseActionExecutionException("enterIntoTextField(" + desc + ")"));
+                        }
+                    }
+                }
+                if (!element.getAttribute("type").equals("password"))
+                    reporter().logPass("W pole tekstowe [" + desc + "] wpisano wartość '" + value + "'");
+                else
+                    reporter().logPass("Uzupełniono hasło w pole [" + desc + "]");
+            } else {
+                reporter().logFail("Pole tekstowe [" + desc + "] nie jest widoczne na ekranie.");
+            }
+        } catch (WebDriverException e) {
+            handleWebDriverExceptions(e, desc);
+        }
+    }
+
+    public static void enterIntoTextArea(By by, String value, String desc) {
+        enterIntoTextArea(getElement(by), value, desc);
+    }
+
+    @Step("Wpisanie wartości {value} w pole edycyjne {desc}")
+    public static void enterIntoTextArea(WebElement element, String value, String desc) {
+        try {
+            if (!element.getTagName().equals("textarea"))
+                handleWebDriverExceptions(new UnexpectedTagNameException("textarea", element.getTagName()), desc);
+            if (!element.isEnabled()) {
+                reporter().logFail("Pole edycyjne [" + desc + "] jest wyłączone");
+                handleWebDriverExceptions(new ElementNotInteractableException("Pole edycyjne [" + desc + "] jest wyłączone"), desc);
+            }
+            scrollToElement(element);
+            if (element.isDisplayed()) {
+                element.clear();
+                element.sendKeys(value);
+                try {
+                    if (!(element.getAttribute("value").equals(value.trim()) || element.getText().equals(value.trim()))) {
+                        if (!(element.getAttribute("value").equals(value.trim())))
+                            reporter().logFail("Nie wpisano tekstu '" + value + "' w pole edycyjne [" + desc + "] (wpisano: '" + element.getAttribute("value") + "')",
+                                    new FalseActionExecutionException("enterIntoTextArea(" + desc + ")"));
+                        else
+                            reporter().logFail("Nie wpisano tekstu '" + value + "' w pole edycyjne [" + desc + "] (wpisano: '" + element.getText() + "')",
+                                    new FalseActionExecutionException("enterIntoTextArea(" + desc + ")"));
+                    }
+                } catch (StaleElementReferenceException e) {
+                    log.warn("Nie można zweryfikować wartości, lokator elementu się zmienił");
+                }
+                reporter().logPass("W pole edycyjne [" + desc + "] nie jest widoczne na ekranie.");
+            }
+        } catch (WebDriverException e) {
+            handleWebDriverExceptions(e, desc);
+        }
+    }
+
     public static void clickElement(WebElement element, String desc) {
         clickElement(element, desc, true);
     }
@@ -99,6 +187,10 @@ public class CommonActions {
         } catch (WebDriverException e) {
             Common.handleWebDriverExceptions(e, desc);
         }
+    }
+
+    public static void clickElement(By by, String desc) {
+        clickElement(by, desc, true);
     }
 
     @Step("Kliknięcie w element {desc}")

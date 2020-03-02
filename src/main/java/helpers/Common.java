@@ -13,6 +13,7 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.safari.ConnectionClosedException;
 import org.openqa.selenium.support.ui.UnexpectedTagNameException;
 
@@ -36,21 +37,75 @@ public class Common {
 
     @Step("Inicjalizacja Webdriver oraz przekazanie testu do realizacji")
     public static WebDriver setUpClass() {
-
         driver = initLocalDriver(Browser.CHROME, BrowserArg.INCOGNITO, ReportManagerFactory.ReporterType.ALLURE);
-
-
-//        System.setProperty("webdriver.chrome.driver", CHROMEPATH);
-//        driver = new ChromeDriver();
-//        driver.manage().window().maximize();
         return driver;
     }
 
     public static void quitDriver() {
         log.info("Zamykanie Webdrivera...");
-        if (driver != null) {
+        try {
+        if (driver != null && (!(driver instanceof RemoteWebDriver) || ((RemoteWebDriver) driver).getSessionId() != null)) {
             driver.quit();
+        } }
+        catch (WebDriverException e) {
+            if(e.getMessage().matches("^Session \\[a-f0-9]* was terminated .*$"))
+                log.warn("Driver zamknięty niestandradowo \n", e);
+            else handleWebDriverExceptions(e, "quitDriver");
         }
+    }
+
+    public static WebDriver initLocalDriver(Browser browser, BrowserArg arg, ReportManagerFactory.ReporterType reporterType) {
+        try {
+            DesiredCapabilities caps = new DesiredCapabilities();
+            switch (arg) {
+                case HEADLESS:
+                    log.info("######### MODE HEADLESS ##########");
+                    switch (browser) {
+                        case CHROME:
+                            System.setProperty("webdriver.chrome.driver", CHROMEPATH);
+                            ChromeOptions chromeOptions = new ChromeOptions().merge(caps);
+                            chromeOptions.addArguments("-incognito");
+                            chromeOptions.addArguments("--headless");
+                            chromeOptions.addArguments("--disable-dev-shm-usage");
+                            chromeOptions.addArguments("--lang=" + "pl_PL");
+                            driver = new ChromeDriver(chromeOptions);
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Unknown browser " + browser);
+                    }
+                    break;
+                case INCOGNITO:
+                    log.info("######### MODE INCOGNITO ##########");
+                    switch (browser) {
+                        case CHROME:
+                            System.setProperty("webdriver.chrome.driver", CHROMEPATH);
+                            ChromeOptions chromeOptions = new ChromeOptions().merge(caps);
+                            chromeOptions.addArguments("-incognito");
+                            driver = new ChromeDriver(chromeOptions);
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Unknown browser " + browser);
+                    }
+                    break;
+            }
+        } catch (WebDriverException e) {
+            handleWebDriverExceptions(e, null);
+        }
+        driver.manage().window().maximize();
+        driver.manage().timeouts().pageLoadTimeout(timeoutInSeconds, TimeUnit.SECONDS);
+        driver.manage().timeouts().implicitlyWait(timeoutInSeconds, TimeUnit.SECONDS);
+        driver.manage().timeouts().setScriptTimeout(timeoutInSeconds,TimeUnit.SECONDS);
+        reporter = buildReporter(reporterType, driver);
+
+        return driver;
+    }
+
+    public static void initReporter(ReportManagerFactory.ReporterType reporterType, Object driver) {
+        reporter = buildReporter(reporterType, driver);
+    }
+
+    public static void initSkippingReporter(ReportManagerFactory.ReporterType reporterType) {
+        reporter = buildSkippingReporter(reporterType);
     }
 
     @Step("Przejście do url /  endpoint {url}")
@@ -344,6 +399,17 @@ public class Common {
         }
     }
 
+    public static void closeTab(int tab){
+        try{
+            ArrayList<String> tabs = new ArrayList<>(driver.getWindowHandles());
+            driver.switchTo().window(tabs.get(tab));
+            driver.close();
+            driver.switchTo().window(tabs.get(tab == 0 ? 0 : tab - 1));
+        } catch (Exception e) {
+            reporter().logFail("Problem z zakładkami..." + e);
+        }
+    }
+
     public static int getCountObject(By by) {
         return driver.findElements(by).size();
     }
@@ -368,55 +434,5 @@ public class Common {
     public static ReportManager reporter() {
         if (reporter == null) initSkippingReporter(ReportManagerFactory.ReporterType.ALLURE);
         return reporter;
-    }
-
-    public static void initSkippingReporter(ReportManagerFactory.ReporterType reporterType) {
-        reporter = buildSkippingReporter(reporterType);
-    }
-
-    public static WebDriver initLocalDriver(Browser browser, BrowserArg arg, ReportManagerFactory.ReporterType reporterType) {
-        try {
-            DesiredCapabilities caps = new DesiredCapabilities();
-            switch (arg) {
-                case HEADLESS:
-                    log.info("######### MODE HEADLESS ##########");
-                    switch (browser) {
-                        case CHROME:
-                            System.setProperty("webdriver.chrome.driver", CHROMEPATH);
-                            ChromeOptions chromeOptions = new ChromeOptions().merge(caps);
-                            chromeOptions.addArguments("-incognito");
-                            chromeOptions.addArguments("--headless");
-                            chromeOptions.addArguments("--disable-dev-shm-usage");
-                            chromeOptions.addArguments("--lang=" + "pl_PL");
-                            driver = new ChromeDriver(chromeOptions);
-                            break;
-                        default:
-                            throw new IllegalArgumentException("Unknown browser " + browser);
-                    }
-                    break;
-                case INCOGNITO:
-                    log.info("######### MODE INCOGNITO ##########");
-                    switch (browser) {
-                        case CHROME:
-                            System.setProperty("webdriver.chrome.driver", CHROMEPATH);
-                            ChromeOptions chromeOptions = new ChromeOptions().merge(caps);
-                            chromeOptions.addArguments("-incognito");
-                            driver = new ChromeDriver(chromeOptions);
-                            break;
-                        default:
-                            throw new IllegalArgumentException("Unknown browser " + browser);
-                    }
-                    break;
-            }
-        } catch (WebDriverException e) {
-            handleWebDriverExceptions(e, null);
-        }
-        driver.manage().window().maximize();
-        driver.manage().timeouts().pageLoadTimeout(timeoutInSeconds, TimeUnit.SECONDS);
-        driver.manage().timeouts().implicitlyWait(timeoutInSeconds, TimeUnit.SECONDS);
-        driver.manage().timeouts().setScriptTimeout(timeoutInSeconds,TimeUnit.SECONDS);
-        reporter = buildReporter(reporterType, driver);
-
-        return driver;
     }
 }
