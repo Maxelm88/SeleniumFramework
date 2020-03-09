@@ -1,7 +1,7 @@
 # SeleniumFramework
 Framework Selenium + Junit + Allure + Jenkins
 
-Użyte wersje:
+Użyte wersje: <br />
 allure-maven - 2.10.0
 allure-junit4 - 2.13.0
 selenium - 3.141.59
