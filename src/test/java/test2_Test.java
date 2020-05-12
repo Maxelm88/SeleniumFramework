@@ -34,9 +34,9 @@ public class test2_Test {
 
     public void krok1OtworzenieStrony() {
         openUrl(true, "https://www.wp.pl/");
-        enterIntoElement(GoogleSearchPage.poleWyszukania, "lala", "Pole szukania", false);
-        clickElement(GoogleSearchPage.przyciskWyszukaj, "Wyszukaj");
-        clickElement(GoogleSearchPage.next, "next");
+        enterIntoElement(GoogleSearchPage.poleWyszukania, "lala", false);
+        clickElement(GoogleSearchPage.przyciskWyszukaj);
+        clickElement(GoogleSearchPage.next);
         String title = driver.getTitle();
         if(title.contains("lalla")) {
             reporter().logPass("Prawidłowy tytuł sttrony");

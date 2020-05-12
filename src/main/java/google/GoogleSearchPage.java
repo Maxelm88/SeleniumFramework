@@ -1,15 +1,12 @@
 package google;
 
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.FindBy;
+import helpers.DescribeBy;
+import org.openqa.selenium.By;
 
 public class GoogleSearchPage {
-    @FindBy(name = "q")
-    public static WebElement poleWyszukania;
-    @FindBy(name = "btnK")
-    public static WebElement przyciskWyszukaj;
-    @FindBy(xpath = "//span[contains(text(), 'Następna')]")
-    public static WebElement next;
+    public static final DescribeBy poleWyszukania = new DescribeBy(By.name("q"), "Pole szukania");
+    public static final DescribeBy przyciskWyszukaj = new DescribeBy(By.name("btnK"), "Wyszukaj");
+    public static final DescribeBy next = new DescribeBy(By.xpath("//span[contains(text(), 'Następna')]"), "next");
 }
 
 

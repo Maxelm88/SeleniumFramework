@@ -62,6 +62,7 @@ public class Common {
                     log.info("######### MODE HEADLESS ##########");
                     switch (browser) {
                         case CHROME:
+                            System.setProperty("webdriver.chrome.silentOutput", "true"); //ukrycie błędu "Timed out receiving message from renderer: 0.100"
                             System.setProperty("webdriver.chrome.driver", CHROMEPATH);
                             ChromeOptions chromeOptions = new ChromeOptions().merge(caps);
                             chromeOptions.addArguments("-incognito");
@@ -78,6 +79,7 @@ public class Common {
                     log.info("######### MODE INCOGNITO ##########");
                     switch (browser) {
                         case CHROME:
+                            System.setProperty("webdriver.chrome.silentOutput", "true"); //ukrycie błędu "Timed out receiving message from renderer: 0.100"
                             System.setProperty("webdriver.chrome.driver", CHROMEPATH);
                             ChromeOptions chromeOptions = new ChromeOptions().merge(caps);
                             chromeOptions.addArguments("-incognito");

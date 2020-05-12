@@ -4,7 +4,13 @@ import helpers.throwables.FalseActionExecutionException;
 import io.qameta.allure.Step;
 import lombok.extern.log4j.Log4j;
 import org.apache.commons.lang3.StringUtils;
-import org.openqa.selenium.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.ElementNotInteractableException;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.WebDriverException;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.UnexpectedTagNameException;
 
@@ -50,6 +56,11 @@ public class CommonActions {
         enterIntoElement(getElement(by), value, desc, checkEnterValue);
     }
 
+    public static void enterIntoElement(DescribeBy locator, String value, boolean checkEnterValue) {
+        enterIntoElement(getElement(locator.by), value, locator.desc, checkEnterValue);
+    }
+
+
     @Step("Wpisanie wartości {value} w element {desc}")
     public static void enterIntoElement(WebElement element, String value, String desc, boolean checkEnteredValue) {
         try {
@@ -80,8 +91,13 @@ public class CommonActions {
         }
     }
 
+    @Step("Wpisanie wartości {value} w pole tekstowe {desc}")
     public static void enterIntoTextField(By by, String value, String desc) {
         enterIntoTextField(getElement(by), value, desc, false);
+    }
+
+    public static void enterIntoTextField(DescribeBy locator, String value) {
+        enterIntoTextField(getElement(locator.by), value, locator.desc, false);
     }
 
     @Step("Wpisanie wartości {value} w pole tekstowe {desc}")
@@ -134,6 +150,10 @@ public class CommonActions {
         enterIntoTextArea(getElement(by), value, desc);
     }
 
+    public static void enterIntoTextArea(DescribeBy locator, String value) {
+        enterIntoTextArea(getElement(locator.by), value, locator.desc);
+    }
+
     @Step("Wpisanie wartości {value} w pole edycyjne {desc}")
     public static void enterIntoTextArea(WebElement element, String value, String desc) {
         try {
@@ -166,8 +186,13 @@ public class CommonActions {
         }
     }
 
+    @Step("Kliknięcie w element {desc}")
     public static void clickElement(WebElement element, String desc) {
         clickElement(element, desc, true);
+    }
+
+    public static void clickElement(DescribeBy locator) {
+        clickElement(locator.by, locator.desc, true);
     }
 
     @Step("Kliknięcie w element {desc}")
@@ -208,7 +233,6 @@ public class CommonActions {
             Common.handleWebDriverExceptions(e, desc);
         }
     }
-
 
     @Step("Kliknięcie w przycisk {desc}")
     public static void clickButton(WebElement element, String desc) {
