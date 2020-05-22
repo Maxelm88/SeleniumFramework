@@ -51,7 +51,6 @@ public class CommonActions {
         return ((JavascriptExecutor) Common.driver).executeScript(script, arguments);
     }
 
-    @Step("Wpisanie wartości {value} w elemeny {desc}")
     public static void enterIntoElement(By by, String value, String desc, boolean checkEnterValue) {
         enterIntoElement(getElement(by), value, desc, checkEnterValue);
     }
@@ -91,7 +90,6 @@ public class CommonActions {
         }
     }
 
-    @Step("Wpisanie wartości {value} w pole tekstowe {desc}")
     public static void enterIntoTextField(By by, String value, String desc) {
         enterIntoTextField(getElement(by), value, desc, false);
     }
@@ -186,7 +184,7 @@ public class CommonActions {
         }
     }
 
-    @Step("Kliknięcie w element {desc}")
+
     public static void clickElement(WebElement element, String desc) {
         clickElement(element, desc, true);
     }

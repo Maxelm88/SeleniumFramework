@@ -14,5 +14,4 @@ public class MyStore1_Test extends AbstractMyStoreTest {
         StoreSteps.wyszukanie("Lala");
     }
 
-
 }
