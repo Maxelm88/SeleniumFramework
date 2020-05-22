@@ -30,7 +30,7 @@ import static helpers.reporter.ReportManagerFactory.buildSkippingReporter;
 public class Common {
     public static WebDriver driver;
     private static StopWatch stopWatch;
-    public static int timeoutInSeconds = 60;
+    public static int timeoutInSeconds = 15;
     private static final String CHROMEPATH = ".\\driver\\chromedriver.exe";
 
     private static ReportManager reporter;
@@ -150,15 +150,15 @@ public class Common {
         } else if (e instanceof InvalidSelectorException) {
             reporter().logFail("Selektor elementu " + desc + "jest nieprawidłowy.", e);
         } else if (e instanceof NoSuchElementException) {
-            reporter().logFail("Element " + desc + "nie istnieje.", e);
+            reporter().logFail("Element " + desc + " nie istnieje.", e);
         } else if (e instanceof NoAlertPresentException) {
             reporter().logFail("Oczekiwano ostrzeżenia, ale żadnego nie znaleziono.", e);
         } else if (e instanceof JavascriptExecutor) {
             reporter().logFail("Błąd Javascriptu. Rozwiń aby zobaczyć szczegóły.", e);
         } else if (e instanceof InvalidElementStateException) {
-            reporter().logFail("Stan elementu " + desc + "nie pozwala na wykonanie żądanej akcji. Rozwiń by zobaczyć szczegóły.", e);
+            reporter().logFail("Stan elementu " + desc + " nie pozwala na wykonanie żądanej akcji. Rozwiń by zobaczyć szczegóły.", e);
         } else if (e instanceof StaleElementReferenceException) {
-            reporter().logFail("Stan elementu " + desc + "już nie istnieje. Sprawdź czy nie zmienił się jego lokator.", e);
+            reporter().logFail("Stan elementu " + desc + " już nie istnieje. Sprawdź czy nie zmienił się jego lokator.", e);
         } else if (e instanceof UnhandledAlertException) {
             reporter().logFail("Nieobsłużone ostrzeżenie: " + getAlertText(false) + ". Sprawdź log testu.", e);
         } else if (e instanceof TimeoutException) {
@@ -281,6 +281,11 @@ public class Common {
 
     public static boolean isElementPresent(By by, int timeoutsInSeconds) {
         return CommonWaits.waitUntilElementPresent(by, timeoutsInSeconds) != null;
+    }
+
+    public static boolean isElementVisible(DescribeBy locator, int timeoutInSeconds)
+    {
+        return CommonWaits.waitUntilElementVisible(getElement(locator.by), timeoutInSeconds) != null;
     }
 
     public static boolean isElementVisible(WebElement element, int timeoutInSeconds) {

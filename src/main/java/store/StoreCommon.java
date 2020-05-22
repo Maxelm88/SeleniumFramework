@@ -7,5 +7,7 @@ public class StoreCommon {
 
     public static void initElement(WebDriver driver) {
         PageFactory.initElements(driver, store.po.StoreHomepage.class);
+        PageFactory.initElements(driver, store.po.StoreSignInPage.class);
+        PageFactory.initElements(driver, store.po.StoreMyAccountPage.class);
     }
 }

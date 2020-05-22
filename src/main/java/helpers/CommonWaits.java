@@ -16,11 +16,6 @@ import static helpers.Common.reporter;
 @Log4j
 public class CommonWaits {
 
-    public static WebElement waitUntilElementPresent(DescribeBy locator, int timeoutInSeconds)
-    {
-        return waitUntilElementPresent(locator.by, timeoutInSeconds);
-    }
-
     @Step("Oczekiwanie na  element")
     public static WebElement waitUntilElementPresent(By by, int timeoutInSeconds) {
         WebElement found;

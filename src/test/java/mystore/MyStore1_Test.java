@@ -12,6 +12,7 @@ public class MyStore1_Test extends AbstractMyStoreTest {
     public void testMethod() {
         StoreSteps.openPage();
         StoreSteps.wyszukanie("Lala");
+        StoreSteps.logowanie("user@user.pl", "user123");
     }
 
 }
