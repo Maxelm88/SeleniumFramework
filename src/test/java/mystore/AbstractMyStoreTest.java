@@ -1,5 +1,9 @@
 package mystore;
 
+import helpers.TestUtils;
+import helpers.dictionary.ApplicationName;
+import helpers.dictionary.Profile;
+import helpers.dictionary.PropertyNames;
 import org.junit.After;
 import org.junit.Before;
 import org.openqa.selenium.WebDriver;
@@ -10,6 +14,10 @@ import static helpers.Common.setUpClass;
 
 public class AbstractMyStoreTest {
     protected WebDriver driver;
+    protected static final String SKIP = PropertyNames.getSkip();
+    protected static final ApplicationName APP_NAME = ApplicationName.STORE;
+    protected static final Profile APP_ENV = PropertyNames.getProfile();
+
 
     @Before
     public void setUp() {
@@ -19,7 +27,9 @@ public class AbstractMyStoreTest {
 
     @After
     public void tearDown() {
-        if (System.getProperty("skip") != null && !System.getProperty("skip").equals("false")) return;
+        if (TestUtils.isSkip(SKIP)) {
+            return;
+        }
         quitDriver();
     }
 }
