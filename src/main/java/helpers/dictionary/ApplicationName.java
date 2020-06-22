@@ -2,7 +2,6 @@ package helpers.dictionary;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
 import java.util.Arrays;
 
 @Getter

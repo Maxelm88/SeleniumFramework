@@ -1,6 +1,5 @@
 package helpers.reporter.screenshot;
 
-
 import lombok.extern.log4j.Log4j;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.NoAlertPresentException;
@@ -25,16 +24,17 @@ public class SeleniumScreenshotManager implements ScreenshotManager {
     }
 
     public byte[] takeScreenshot() throws IOException {
-        if(driver.toString().contains("null")) {
+        if (driver.toString().contains("null")) {
             log.warn("Failed to take screenshot: driver already quited");
-        return null;
+            return null;
         }
 
         try {
-           Alert a = driver.switchTo().alert();
-           log.info("Zamknięto alert: " + a.getText());
-           a.dismiss();
-        } catch (NoAlertPresentException ignored){}
+            Alert a = driver.switchTo().alert();
+            log.info("Zamknięto alert: " + a.getText());
+            a.dismiss();
+        } catch (NoAlertPresentException ignored) {
+        }
 
         try {
             String przywroconyURL = driver.getCurrentUrl();
@@ -44,7 +44,7 @@ public class SeleniumScreenshotManager implements ScreenshotManager {
             saveImage(image);
 
             byte[] out;
-            try(ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
                 ImageIO.write(image, "png", baos);
                 baos.flush();
                 out = baos.toByteArray();

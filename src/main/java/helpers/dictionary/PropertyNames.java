@@ -7,9 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum PropertyNames {
     APP_ENV("appEnv"),
-
     ENV("env"),
-
     SKIP("skip");
 
     private String description;

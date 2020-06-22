@@ -1,14 +1,12 @@
 import google.GoogleCommon;
 import google.GoogleSearchPage;
+import helpers.Common;
+import helpers.CommonActions;
 import io.qameta.allure.junit4.DisplayName;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
-
-import static helpers.Common.*;
-import static helpers.CommonActions.clickElement;
-import static helpers.CommonActions.enterIntoElement;
 
 @DisplayName("Testowanie raportu")
 public class test_Test {
@@ -17,7 +15,7 @@ public class test_Test {
 
     @Before
     public void setUp() {
-        driver = setUpClass();
+        driver = Common.setUpClass();
         GoogleCommon.initElement(driver);
     }
 
@@ -30,19 +28,19 @@ public class test_Test {
     @After
     public void tearDown() {
         if (System.getProperty("skip") != null && !System.getProperty("skip").equals("false")) return;
-        quitDriver();
+        Common.quitDriver();
     }
 
     public void krok1OtworzenieStrony() {
-        openUrl(true, "https://www.google.pl/");
-        enterIntoElement(GoogleSearchPage.poleWyszukania, "lala", false);
-        clickElement(GoogleSearchPage.przyciskWyszukaj);
-        clickElement(GoogleSearchPage.next);
+        Common.openUrl(true, "https://www.google.pl/");
+        CommonActions.enterIntoElement(GoogleSearchPage.poleWyszukania, "lala", false);
+        CommonActions.clickElement(GoogleSearchPage.przyciskWyszukaj);
+        CommonActions.clickElement(GoogleSearchPage.next);
         String title = driver.getTitle();
         if(title.contains("lalla")) {
-            reporter().logPass("Prawidłowy tytuł sttrony");
+            Common.reporter().logPass("Prawidłowy tytuł sttrony");
         } else {
-            reporter().logFail("Nieprawidłowy tytuł strony");
+            Common.reporter().logFail("Nieprawidłowy tytuł strony");
         }
     }
 }

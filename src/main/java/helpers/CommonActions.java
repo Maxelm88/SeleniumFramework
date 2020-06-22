@@ -16,10 +16,6 @@ import org.openqa.selenium.support.ui.UnexpectedTagNameException;
 
 import java.util.Arrays;
 
-import static helpers.Common.getElement;
-import static helpers.Common.handleWebDriverExceptions;
-import static helpers.Common.reporter;
-
 @Log4j
 public class CommonActions {
 
@@ -27,7 +23,7 @@ public class CommonActions {
     public static void scrollToElement(WebElement element) {
         try {
             if (element == null) {
-                reporter().logError("Nie można scrollować do elementu: null");
+                Common.reporter().logError("Nie można scrollować do elementu: null");
             } else if (!element.isDisplayed()) executeJavascript("arguments[0].scrollIntoView(true);", element);
         } catch (WebDriverException e) {
             Common.handleWebDriverExceptions(e, Common.getElementDescription(element));
@@ -36,7 +32,7 @@ public class CommonActions {
 
     public static Object executeJavascript(String script, Object... arguments) {
         if (!(Common.driver instanceof JavascriptExecutor)) {
-            reporter().logError("Obecny Webdriver nie ma zdolności uruchomienia Javascriptu");
+            Common.reporter().logError("Obecny Webdriver nie ma zdolności uruchomienia Javascriptu");
             return null;
         }
 
@@ -52,11 +48,11 @@ public class CommonActions {
     }
 
     public static void enterIntoElement(By by, String value, String desc, boolean checkEnterValue) {
-        enterIntoElement(getElement(by), value, desc, checkEnterValue);
+        enterIntoElement(Common.getElement(by), value, desc, checkEnterValue);
     }
 
     public static void enterIntoElement(DescribeBy locator, String value, boolean checkEnterValue) {
-        enterIntoElement(getElement(locator.by), value, locator.desc, checkEnterValue);
+        enterIntoElement(Common.getElement(locator.by), value, locator.desc, checkEnterValue);
     }
 
 
@@ -64,7 +60,7 @@ public class CommonActions {
     public static void enterIntoElement(WebElement element, String value, String desc, boolean checkEnteredValue) {
         try {
             if (!element.isEnabled()) {
-                reporter().logFail("Element " + desc + " jest wyłączony");
+                Common.reporter().logFail("Element " + desc + " jest wyłączony");
                 Common.handleWebDriverExceptions(new ElementNotInteractableException("Element " + desc + " jest wyłączony"), desc);
             }
             scrollToElement(element);
@@ -75,15 +71,19 @@ public class CommonActions {
             if (checkEnteredValue &&
                     (!(element.getAttribute("value").equals(value.trim()) || element.getText().equals(value.trim())))) {
                 if (!(element.getAttribute("value").equals(value.trim())))
-                    reporter().logFail("Nie wpisano tekstu '" + value + "' w element [" + desc + "] (wpisano: " + element.getAttribute("value") + ")", new FalseActionExecutionException("enterIntoElement(" + desc + ")"));
+                    Common.reporter().logFail("Nie wpisano tekstu '" + value + "' w element [" + desc + "] (wpisano: "
+                                    + element.getAttribute("value") + ")",
+                            new FalseActionExecutionException("enterIntoElement(" + desc + ")"));
                 else {
-                    reporter().logFail("Nie wpisano tekstu '" + value + "' w element [" + desc + "] (wpisano: " + element.getText() + "]", new FalseActionExecutionException("enterIntoElement(" + desc + ")"));
+                    Common.reporter().logFail("Nie wpisano tekstu '" + value
+                            + "' w element [" + desc + "] (wpisano: " + element.getText()
+                            + "]", new FalseActionExecutionException("enterIntoElement(" + desc + ")"));
                 }
             }
             if (element.getTagName().equals("input") && element.getAttribute("type").equals("password")) {
-                reporter().logPass("Uzupełniono hasło w polu '" + desc + "'");
+                Common.reporter().logPass("Uzupełniono hasło w polu '" + desc + "'");
             } else {
-                reporter().logPass("W element: '" + desc + "' wpisano wartość: '" + value + "'");
+                Common.reporter().logPass("W element: '" + desc + "' wpisano wartość: '" + value + "'");
             }
         } catch (WebDriverException e) {
             Common.handleWebDriverExceptions(e, desc);
@@ -91,27 +91,27 @@ public class CommonActions {
     }
 
     public static void enterIntoTextField(By by, String value, String desc) {
-        enterIntoTextField(getElement(by), value, desc, false);
+        enterIntoTextField(Common.getElement(by), value, desc, false);
     }
 
     public static void enterIntoTextField(DescribeBy locator, String value) {
-        enterIntoTextField(getElement(locator.by), value, locator.desc, false);
+        enterIntoTextField(Common.getElement(locator.by), value, locator.desc, false);
     }
 
     @Step("Wpisanie wartości {value} w pole tekstowe {desc}")
     public static void enterIntoTextField(WebElement element, String value, String desc, boolean requiredNotEmpty) {
         if (requiredNotEmpty && StringUtils.isEmpty(value))
-            reporter().logFail("Wartość do wpisania w pole [" + desc + "] jest pusta");
+            Common.reporter().logFail("Wartość do wpisania w pole [" + desc + "] jest pusta");
         try {
             if (!element.getTagName().equals("input") ||
                     !(element.getAttribute("type").equals("text") ||
                             element.getAttribute("type").equals("password") ||
                             element.getAttribute("type").equals("number")))
-                handleWebDriverExceptions(new UnexpectedTagNameException(
+                Common.handleWebDriverExceptions(new UnexpectedTagNameException(
                         "input with type 'text', 'password' or 'number'",
                         element.getTagName() + "with type '" + element.getAttribute("type" + "'")), desc);
             if (!element.isEnabled()) {
-                reporter().logFail("Pole tekstowe [" + desc + "] jest wyłączone");
+                Common.reporter().logFail("Pole tekstowe [" + desc + "] jest wyłączone");
             }
             scrollToElement(element);
             if (element.isDisplayed()) {
@@ -119,47 +119,50 @@ public class CommonActions {
                 element.sendKeys(value);
                 if (!(element.getAttribute("value").equals(value.trim()) || element.getText().equals(value.trim()))) {
                     if (!(element.getAttribute("value").equals(value.trim()))) {
-                        reporter().logWarn("Nie wprowadzono tekstu " + value + " w pole tekstowe [" + desc + "]. Ponawiam...");
+                        Common.reporter().logWarn("Nie wprowadzono tekstu " + value + " w pole tekstowe [" + desc + "]. Ponawiam...");
                         element.clear();
                         element.sendKeys(value);
                         if (!(element.getAttribute("value").equals(value.trim()) || element.getText().equals(value.trim()))) {
                             if (!(element.getAttribute("value").equals(value.trim())))
-                                reporter().logFail("Nie wpisano tekstu '" + value + "' w pole tekstowe [" + desc + "] (wpisano: '" + element.getAttribute("value") + "')",
+                                Common.reporter().logFail("Nie wpisano tekstu '" + value + "' w pole tekstowe ["
+                                                + desc + "] (wpisano: '" + element.getAttribute("value") + "')",
                                         new FalseActionExecutionException("enterIntoTextField(" + desc + ")"));
                             else
-                                reporter().logFail("Nie wpisano tekstu '" + value + "' w pole tekstowe [" + desc + "] (wpisano: '" + element.getText() + "')",
+                                Common.reporter().logFail("Nie wpisano tekstu '" + value + "' w pole tekstowe ["
+                                                + desc + "] (wpisano: '" + element.getText() + "')",
                                         new FalseActionExecutionException("enterIntoTextField(" + desc + ")"));
                         }
                     }
                 }
                 if (!element.getAttribute("type").equals("password"))
-                    reporter().logPass("W pole tekstowe [" + desc + "] wpisano wartość '" + value + "'");
+                    Common.reporter().logPass("W pole tekstowe [" + desc + "] wpisano wartość '" + value + "'");
                 else
-                    reporter().logPass("Uzupełniono hasło w pole [" + desc + "]");
+                    Common.reporter().logPass("Uzupełniono hasło w pole [" + desc + "]");
             } else {
-                reporter().logFail("Pole tekstowe [" + desc + "] nie jest widoczne na ekranie.");
+                Common.reporter().logFail("Pole tekstowe [" + desc + "] nie jest widoczne na ekranie.");
             }
         } catch (WebDriverException e) {
-            handleWebDriverExceptions(e, desc);
+            Common.handleWebDriverExceptions(e, desc);
         }
     }
 
     public static void enterIntoTextArea(By by, String value, String desc) {
-        enterIntoTextArea(getElement(by), value, desc);
+        enterIntoTextArea(Common.getElement(by), value, desc);
     }
 
     public static void enterIntoTextArea(DescribeBy locator, String value) {
-        enterIntoTextArea(getElement(locator.by), value, locator.desc);
+        enterIntoTextArea(Common.getElement(locator.by), value, locator.desc);
     }
 
     @Step("Wpisanie wartości {value} w pole edycyjne {desc}")
     public static void enterIntoTextArea(WebElement element, String value, String desc) {
         try {
             if (!element.getTagName().equals("textarea"))
-                handleWebDriverExceptions(new UnexpectedTagNameException("textarea", element.getTagName()), desc);
+                Common.handleWebDriverExceptions(new UnexpectedTagNameException("textarea", element.getTagName()), desc);
             if (!element.isEnabled()) {
-                reporter().logFail("Pole edycyjne [" + desc + "] jest wyłączone");
-                handleWebDriverExceptions(new ElementNotInteractableException("Pole edycyjne [" + desc + "] jest wyłączone"), desc);
+                Common.reporter().logFail("Pole edycyjne [" + desc + "] jest wyłączone");
+                Common.handleWebDriverExceptions(new ElementNotInteractableException("Pole edycyjne ["
+                        + desc + "] jest wyłączone"), desc);
             }
             scrollToElement(element);
             if (element.isDisplayed()) {
@@ -168,19 +171,21 @@ public class CommonActions {
                 try {
                     if (!(element.getAttribute("value").equals(value.trim()) || element.getText().equals(value.trim()))) {
                         if (!(element.getAttribute("value").equals(value.trim())))
-                            reporter().logFail("Nie wpisano tekstu '" + value + "' w pole edycyjne [" + desc + "] (wpisano: '" + element.getAttribute("value") + "')",
+                            Common.reporter().logFail("Nie wpisano tekstu '" + value + "' w pole edycyjne ["
+                                            + desc + "] (wpisano: '" + element.getAttribute("value") + "')",
                                     new FalseActionExecutionException("enterIntoTextArea(" + desc + ")"));
                         else
-                            reporter().logFail("Nie wpisano tekstu '" + value + "' w pole edycyjne [" + desc + "] (wpisano: '" + element.getText() + "')",
+                            Common.reporter().logFail("Nie wpisano tekstu '" + value + "' w pole edycyjne ["
+                                            + desc + "] (wpisano: '" + element.getText() + "')",
                                     new FalseActionExecutionException("enterIntoTextArea(" + desc + ")"));
                     }
                 } catch (StaleElementReferenceException e) {
                     log.warn("Nie można zweryfikować wartości, lokator elementu się zmienił");
                 }
-                reporter().logPass("W pole edycyjne [" + desc + "] nie jest widoczne na ekranie.");
+                Common.reporter().logPass("W pole edycyjne [" + desc + "] nie jest widoczne na ekranie.");
             }
         } catch (WebDriverException e) {
-            handleWebDriverExceptions(e, desc);
+            Common.handleWebDriverExceptions(e, desc);
         }
     }
 
@@ -198,14 +203,14 @@ public class CommonActions {
         try {
             Common.pauseFor(1);
             if (!element.isEnabled()) {
-                reporter().logFail("Element [" + desc + "] jest wyłączony");
+                Common.reporter().logFail("Element [" + desc + "] jest wyłączony");
             }
             if (scroll) {
                 scrollToElement(element);
             }
             if (element.isDisplayed()) {
                 element.click();
-                reporter().logPass("Kliknięto w element [" + desc + "]");
+                Common.reporter().logPass("Kliknięto w element [" + desc + "]");
             }
         } catch (WebDriverException e) {
             Common.handleWebDriverExceptions(e, desc);
@@ -222,7 +227,7 @@ public class CommonActions {
             WebElement element = Common.getElement(by);
             Common.pauseFor(1);
             if (!element.isEnabled()) {
-                reporter().logFail("Element [" + desc + "] jest wyłączony");
+                Common.reporter().logFail("Element [" + desc + "] jest wyłączony");
             }
             if (element.isDisplayed()) {
                 clickElement(element, desc, scroll);
@@ -239,12 +244,12 @@ public class CommonActions {
                 Common.handleWebDriverExceptions(new UnexpectedTagNameException("button", element.getTagName()), desc);
             }
             if (!element.isEnabled()) {
-                reporter().logFail("Przycisk [" + desc + "] jest wyłączony");
+                Common.reporter().logFail("Przycisk [" + desc + "] jest wyłączony");
             }
             scrollToElement(element);
             if (element.isDisplayed()) {
                 element.click();
-                reporter().logPass("Kliknięto w przycisk [" + desc + "]");
+                Common.reporter().logPass("Kliknięto w przycisk [" + desc + "]");
             }
         } catch (WebDriverException e) {
             Common.handleWebDriverExceptions(e, desc);
@@ -255,10 +260,11 @@ public class CommonActions {
     public static void clickCheckBox(WebElement element, String desc) {
         try {
             if (!element.getTagName().equals("input") || !element.getAttribute("type").equals("checkbox")) {
-                Common.handleWebDriverExceptions(new UnexpectedTagNameException("tag: input / checkbox", element.getTagName() + "/" + element.getAttribute("type")), desc);
+                Common.handleWebDriverExceptions(new UnexpectedTagNameException("tag: input / checkbox",
+                        element.getTagName() + "/" + element.getAttribute("type")), desc);
             }
             if (!element.isEnabled()) {
-                reporter().logFail("Przycisk wyboru [" + desc + "] jest wyłączony");
+                Common.reporter().logFail("Przycisk wyboru [" + desc + "] jest wyłączony");
             }
             scrollToElement(element);
             if (element.isDisplayed()) {
@@ -266,9 +272,9 @@ public class CommonActions {
                 element.click();
                 Common.pauseFor(1);
                 if (element.getAttribute("checked") != null == t) {
-                    reporter().logFail("Nie zaznaczono przycisku wyboru [" + desc + "]");
+                    Common.reporter().logFail("Nie zaznaczono przycisku wyboru [" + desc + "]");
                 }
-                reporter().logPass("Kliknięto przycisk wyboru [" + desc + "]");
+                Common.reporter().logPass("Kliknięto przycisk wyboru [" + desc + "]");
             }
         } catch (WebDriverException e) {
             Common.handleWebDriverExceptions(e, desc);
@@ -282,7 +288,7 @@ public class CommonActions {
                 Common.handleWebDriverExceptions(new UnexpectedTagNameException("select", element.getTagName()), desc);
             }
             if (!element.isEnabled()) {
-                reporter().logFail("Lista rozwijana " + desc + " jest wyłączona");
+                Common.reporter().logFail("Lista rozwijana " + desc + " jest wyłączona");
                 throw new ElementNotInteractableException("Lista rozwijana " + desc + " jest wyłączonoa");
             }
             scrollToElement(element);
@@ -290,10 +296,11 @@ public class CommonActions {
                 element.click();
                 Common.pauseFor(1);
                 element.findElement(By.xpath("option[contains(text(), \"" + option + "\"")).click();
-                if (CommonWaits.waitUntilElementPresent(By.xpath("//div[contains(@class, 'AFNoteWindowShortDesc')]"), 1) != null) {
+                if (CommonWaits.waitUntilElementPresent(By.xpath("//div[contains(@class, 'AFNoteWindowShortDesc')]"),
+                        1) != null) {
                     pressKey(Keys.ESCAPE);
                 }
-                reporter().logPass("Wybrano opcje " + option + " z listy [" + desc + "]");
+                Common.reporter().logPass("Wybrano opcje " + option + " z listy [" + desc + "]");
             }
         } catch (WebDriverException e) {
             Common.handleWebDriverExceptions(e, desc + " ->" + option);
@@ -308,7 +315,7 @@ public class CommonActions {
                 Common.handleWebDriverExceptions(new UnexpectedTagNameException("select", element.getTagName()), desc);
             }
             if (!element.isEnabled()) {
-                reporter().logFail("Lista rozwijana " + desc + " jest wyłączona");
+                Common.reporter().logFail("Lista rozwijana " + desc + " jest wyłączona");
                 throw new ElementNotInteractableException("Lista rozwijana " + desc + " jest wyłączonoa");
             }
             scrollToElement(element);
@@ -316,10 +323,11 @@ public class CommonActions {
                 element.click();
                 Common.pauseFor(1);
                 element.findElement(By.xpath("option[contains(text(), \"" + option + "\"")).click();
-                if (CommonWaits.waitUntilElementPresent(By.xpath("//div[contains(@class, 'AFNoteWindowShortDesc')]"), 1) != null) {
+                if (CommonWaits.waitUntilElementPresent(By.xpath("//div[contains(@class, 'AFNoteWindowShortDesc')]"),
+                        1) != null) {
                     pressKey(Keys.ESCAPE);
                 }
-                reporter().logPass("Wybrano opcje " + option + " z listy [" + desc + "]");
+                Common.reporter().logPass("Wybrano opcje " + option + " z listy [" + desc + "]");
             }
         } catch (WebDriverException e) {
             Common.handleWebDriverExceptions(e, desc + " ->" + option);
@@ -343,15 +351,16 @@ public class CommonActions {
     public static void selectRadioOption(WebElement element, String desc) {
         try {
             if (!element.getTagName().equals("input") || !element.getAttribute("type").equals("radio")) {
-                Common.handleWebDriverExceptions(new UnexpectedTagNameException("input / radio", element.getTagName() + " / " + element.getAttribute("type")), desc);
+                Common.handleWebDriverExceptions(new UnexpectedTagNameException("input / radio", element.getTagName()
+                        + " / " + element.getAttribute("type")), desc);
             }
             if (!element.isEnabled()) {
-                reporter().logFail("Przycisk opcji [" + desc + "] jest wyłączony");
+                Common.reporter().logFail("Przycisk opcji [" + desc + "] jest wyłączony");
             }
             scrollToElement(element);
             if (element.isDisplayed()) {
                 element.click();
-                reporter().logPass("Kliknięto w przycisk opcji [" + desc + "]");
+                Common.reporter().logPass("Kliknięto w przycisk opcji [" + desc + "]");
             }
         } catch (WebDriverException e) {
             Common.handleWebDriverExceptions(e, desc);

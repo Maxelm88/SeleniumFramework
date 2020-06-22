@@ -8,8 +8,24 @@ import io.qameta.allure.Step;
 import lombok.extern.log4j.Log4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
-import org.openqa.selenium.*;
+import org.openqa.selenium.Alert;
+import org.openqa.selenium.By;
+import org.openqa.selenium.ElementClickInterceptedException;
+import org.openqa.selenium.ElementNotInteractableException;
+import org.openqa.selenium.ElementNotSelectableException;
+import org.openqa.selenium.ElementNotVisibleException;
+import org.openqa.selenium.InvalidElementStateException;
+import org.openqa.selenium.InvalidSelectorException;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.SessionNotCreatedException;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.UnhandledAlertException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
@@ -19,12 +35,13 @@ import org.openqa.selenium.support.ui.UnexpectedTagNameException;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import static helpers.CommonActions.refreshSite;
-import static helpers.reporter.ReportManagerFactory.buildReporter;
-import static helpers.reporter.ReportManagerFactory.buildSkippingReporter;
 
 @Log4j
 public class Common {
@@ -44,11 +61,11 @@ public class Common {
     public static void quitDriver() {
         log.info("Zamykanie Webdrivera...");
         try {
-        if (driver != null && (!(driver instanceof RemoteWebDriver) || ((RemoteWebDriver) driver).getSessionId() != null)) {
-            driver.quit();
-        } }
-        catch (WebDriverException e) {
-            if(e.getMessage().matches("^Session \\[a-f0-9]* was terminated .*$"))
+            if (driver != null && (!(driver instanceof RemoteWebDriver) || ((RemoteWebDriver) driver).getSessionId() != null)) {
+                driver.quit();
+            }
+        } catch (WebDriverException e) {
+            if (e.getMessage().matches("^Session \\[a-f0-9]* was terminated .*$"))
                 log.warn("Driver zamknięty niestandradowo \n", e);
             else handleWebDriverExceptions(e, "quitDriver");
         }
@@ -96,18 +113,18 @@ public class Common {
         driver.manage().window().maximize();
         driver.manage().timeouts().pageLoadTimeout(timeoutInSeconds, TimeUnit.SECONDS);
         driver.manage().timeouts().implicitlyWait(timeoutInSeconds, TimeUnit.SECONDS);
-        driver.manage().timeouts().setScriptTimeout(timeoutInSeconds,TimeUnit.SECONDS);
-        reporter = buildReporter(reporterType, driver);
+        driver.manage().timeouts().setScriptTimeout(timeoutInSeconds, TimeUnit.SECONDS);
+        reporter = ReportManagerFactory.buildReporter(reporterType, driver);
 
         return driver;
     }
 
     public static void initReporter(ReportManagerFactory.ReporterType reporterType, Object driver) {
-        reporter = buildReporter(reporterType, driver);
+        reporter = ReportManagerFactory.buildReporter(reporterType, driver);
     }
 
     public static void initSkippingReporter(ReportManagerFactory.ReporterType reporterType) {
-        reporter = buildSkippingReporter(reporterType);
+        reporter = ReportManagerFactory.buildSkippingReporter(reporterType);
     }
 
     @Step("Przejście do url /  endpoint {url}")
@@ -283,8 +300,7 @@ public class Common {
         return CommonWaits.waitUntilElementPresent(by, timeoutsInSeconds) != null;
     }
 
-    public static boolean isElementVisible(DescribeBy locator, int timeoutInSeconds)
-    {
+    public static boolean isElementVisible(DescribeBy locator, int timeoutInSeconds) {
         return CommonWaits.waitUntilElementVisible(getElement(locator.by), timeoutInSeconds) != null;
     }
 
@@ -360,7 +376,7 @@ public class Common {
                             break;
                         } else if (i < time - 1) {
                             reporter.logWarn("Pusty tytuł strony, odświeżenie i wycofanie...");
-                            refreshSite();
+                            CommonActions.refreshSite();
                             driver.switchTo().window(currentTabHandle);
                         }
 
@@ -406,8 +422,8 @@ public class Common {
         }
     }
 
-    public static void closeTab(int tab){
-        try{
+    public static void closeTab(int tab) {
+        try {
             ArrayList<String> tabs = new ArrayList<>(driver.getWindowHandles());
             driver.switchTo().window(tabs.get(tab));
             driver.close();

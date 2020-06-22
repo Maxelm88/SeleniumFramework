@@ -11,8 +11,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.concurrent.TimeUnit;
 
-import static helpers.Common.reporter;
-
 @Log4j
 public class CommonWaits {
 
@@ -33,7 +31,7 @@ public class CommonWaits {
     @Step("Oczekiwanie na widoczność elementu")
     public static WebElement waitUntilElementVisible(WebElement element, int timeoutInSeconds) {
         if (element == null) {
-            reporter().logError("Cannot wait  for visibility of null element");
+            Common.reporter().logError("Cannot wait  for visibility of null element");
         }
         WebElement found;
         Common.driver.manage().timeouts().implicitlyWait(0, TimeUnit.MILLISECONDS);
@@ -49,7 +47,7 @@ public class CommonWaits {
     @Step("Oczekiwanie na zniknięcie elementu")
     public static boolean waitUntilElementStale(WebElement element, int timeoutInSeconds) {
         if (element == null) {
-            reporter().logError("Cannot wait  for staleness of null element");
+            Common.reporter().logError("Cannot wait  for staleness of null element");
         }
         Common.driver.manage().timeouts().implicitlyWait(0, TimeUnit.MILLISECONDS);
         boolean isStale;
@@ -66,7 +64,7 @@ public class CommonWaits {
     @Step("Oczekiwanie na zniknięcie elementu")
     public static boolean waitUntilElementNotVisible(WebElement element, int timeoutInSeconds) {
         if (element == null) {
-            reporter().logError("Cannot wait  for disappearance of null element");
+            Common.reporter().logError("Cannot wait  for disappearance of null element");
         }
         Common.driver.manage().timeouts().implicitlyWait(0, TimeUnit.MILLISECONDS);
         boolean isNotVisible;
