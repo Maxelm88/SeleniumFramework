@@ -37,11 +37,11 @@ public class Connections {
     }
 
     public static Connection getStoreMysql(Profile profile) {
-        return getMysqlTestsDbConnection(profile, DatabaseName.STORE_POSTGRESQL);
+        return getMysqlTestsDbConnection(profile, DatabaseName.STORE_MYSQL);
     }
 
     public static Connection getLoginWeb(Profile profile) {
-        return getMysqlTestsDbConnection(profile, DatabaseName.STORE_POSTGRESQL);
+        return getMysqlTestsDbConnection(profile, DatabaseName.STORE_MYSQL);
     }
 
     private static Connection getPostgresqlTestsDbConnection(Profile profile, DatabaseName databaseName) {
