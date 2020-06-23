@@ -33,6 +33,12 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.safari.ConnectionClosedException;
 import org.openqa.selenium.support.ui.UnexpectedTagNameException;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -458,4 +464,19 @@ public class Common {
         if (reporter == null) initSkippingReporter(ReportManagerFactory.ReporterType.ALLURE);
         return reporter;
     }
+
+    public static String getFileContentString(File f) {
+        StringBuilder sb = new StringBuilder(512);
+        try{
+            Reader r = new FileReader(f);
+            int c;
+            while ((c = r.read()) != -1) {
+                sb.append((char) c);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return sb.toString();
+    }
+
 }
