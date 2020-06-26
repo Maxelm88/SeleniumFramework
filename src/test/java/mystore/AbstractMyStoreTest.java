@@ -15,6 +15,7 @@ public class AbstractMyStoreTest {
     protected static final String SKIP = PropertyNames.getSkip();
     protected static final ApplicationName APP_NAME = ApplicationName.STORE;
     protected static final Profile APP_ENV = PropertyNames.getProfile();
+    protected static boolean status = false;
 
     @Before
     public void setUp() {

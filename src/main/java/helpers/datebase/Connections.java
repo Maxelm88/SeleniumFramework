@@ -44,6 +44,10 @@ public class Connections {
         return getMysqlTestsDbConnection(profile, DatabaseName.STORE_MYSQL);
     }
 
+    public static Connection getDaneWynikoweMysql(Profile profile) {
+        return getMysqlTestsDbConnection(profile, DatabaseName.DANE_WYNIKOWE_MYSQL);
+    }
+
     private static Connection getPostgresqlTestsDbConnection(Profile profile, DatabaseName databaseName) {
         return getPostgresqlConnection(ConnectionParams.getParams(propertiesTestsDb, databaseName, profile));
     }
@@ -111,4 +115,5 @@ public class Connections {
             throw new RuntimeException(e.getMessage());
         }
     }
+
 }

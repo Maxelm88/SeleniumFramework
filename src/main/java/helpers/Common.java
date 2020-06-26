@@ -1,9 +1,14 @@
 package helpers;
 
+import helpers.datebase.TestDataManager;
+import helpers.datebase.dto.CustomTestDTO;
 import helpers.dictionary.Browser;
 import helpers.dictionary.BrowserArg;
+import helpers.dictionary.DataRowStatus;
+import helpers.dictionary.Profile;
 import helpers.reporter.ReportManager;
 import helpers.reporter.ReportManagerFactory;
+import helpers.throwables.ReportSummaryParams;
 import io.qameta.allure.Step;
 import lombok.extern.log4j.Log4j;
 import org.apache.commons.lang3.StringUtils;
@@ -37,8 +42,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -467,7 +470,7 @@ public class Common {
 
     public static String getFileContentString(File f) {
         StringBuilder sb = new StringBuilder(512);
-        try{
+        try {
             Reader r = new FileReader(f);
             int c;
             while ((c = r.read()) != -1) {
@@ -478,5 +481,115 @@ public class Common {
         }
         return sb.toString();
     }
+
+    public static void reportSummaryAndSendResults(ReportSummaryParams params) {
+        reportSummaryAndSendResults(params.getTestName(), params.getAppName().getDescription(), params.getEnv(),
+                params.getStatus(), params.getStage(), params.isPassed(), params.isFinalReport(), params.getVarArgs());
+    }
+
+
+    public static void reportSummaryAndSendResults(String testName, String appName, Profile envs, DataRowStatus status,
+                                                   String stage, boolean passed, boolean finalRaport, String... params) {
+        if (reporter == null) {
+            initSkippingReporter(ReportManagerFactory.ReporterType.ALLURE);
+        }
+        if (finalRaport) {
+            reporter().logPass("\n=##################################=");
+            reporter().logPass("PODSUMOWANIE");
+        } else {
+            reporter().logPass("\n=====================================");
+            reporter().logPass("PODSUMOWANIE CZĘSCIOWE");
+        }
+        reporter().logPass("Data: " + getCurrentDate(""));
+        reporter().logPass("Nazwa testu: " + testName);
+        reporter().logPass("Aplikacja: " + appName);
+        reporter().logPass("Środowisko: " + envs.name());
+        reporter().logPass("Etap: " + stage);
+        if (params != null) {
+            for (String param : params) {
+                reporter.logPass(param);
+            }
+        }
+        if (finalRaport) {
+            reporter().logPass("=##################################=\n");
+        } else {
+            reporter().logPass("=====================================\n");
+        }
+        if (passed) {
+            log.info(">>>>> [DB] Zapisywanie do danych testowych <<<<<<");
+            CustomTestDTO data = CustomTestDTO.builder()
+                    .nazwaTestu(testName)
+                    .nazwaAplikacji(appName)
+                    .env(envs.name())
+                    .status(status)
+                    .etap(stage)
+                    .param1(params != null && params.length > 0 ? params[0] : "NULL")
+                    .param2(params != null && params.length > 1 ? params[1] : "NULL")
+                    .param3(params != null && params.length > 2 ? params[2] : "NULL")
+                    .param4(params != null && params.length > 3 ? params[3] : "NULL")
+                    .param5(params != null && params.length > 4 ? params[4] : "NULL")
+                    .param6(params != null && params.length > 5 ? params[5] : "NULL")
+                    .param7(params != null && params.length > 6 ? params[6] : "NULL")
+                    .param8(params != null && params.length > 7 ? params[7] : "NULL")
+                    .param9(params != null && params.length > 8 ? params[8] : "NULL")
+                    .param10(params != null && params.length > 9 ? params[9] : "NULL")
+                    .param11(params != null && params.length > 10 ? params[10] : "NULL")
+                    .param12(params != null && params.length > 11 ? params[11] : "NULL")
+                    .build();
+            new TestDataManager().getCustomDataManager().sendCustomTestData(data, envs);
+        }
+    }
+
+//    TODO przerobić aby nie wyskakiwał błąd java.lang.IndexOutOfBoundsException: Index: 2, Size: 2
+//    public static void reportSummaryAndSendResults(ReportSummaryParams params) {
+//        if (reporter == null) {
+//            initSkippingReporter(ReportManagerFactory.ReporterType.ALLURE);
+//        }
+//        if (params.isFinalReport()) {
+//            reporter().logPass("\n=##################################=");
+//            reporter().logPass("PODSUMOWANIE");
+//        } else {
+//            reporter().logPass("\n=====================================");
+//            reporter().logPass("PODSUMOWANIE CZĘSCIOWE");
+//        }
+//        reporter().logPass("Data: " + getCurrentDate(""));
+//        reporter().logPass("Nazwa testu: " + params.getTestName());
+//        reporter().logPass("Aplikacja: " + params.getAppName().getDescription());
+//        reporter().logPass("Środowisko: " + params.getEnv().name());
+//        reporter().logPass("Etap: " + params.getStage());
+//        if (params != null) {
+//            for (String param : params.getParams()) {
+//                reporter.logPass(param);
+//            }
+//        }
+//        if (params.isFinalReport()) {
+//            reporter().logPass("=##################################=\n");
+//        } else {
+//            reporter().logPass("=====================================\n");
+//        }
+//        if(params.isPassed()){
+//            log.info(">>>>> [DB] Zapisywanie do danych testowych <<<<<<");
+//            CustomTestDTO data = CustomTestDTO.builder()
+//                    .nazwaTestu(params.getTestName().split(" ")[0])
+//                    .nazwaAplikacji(params.getAppName().getDescription())
+//                    .env(params.getEnv().name())
+//                    .status(params.getStatus())
+//                    .etap(params.getStage())
+//                    .param1(params.getParams().get(0) != null && params.getParams().get(0).length() > 0 ? params.getParams().get(0) : null)
+//                    .param2(params.getParams().get(1) != null && params.getParams().get(1).length() > 0 ? params.getParams().get(1) : null)
+//                    .param3(params.getParams().get(2) != null && params.getParams().get(2).length() > 0 ? params.getParams().get(2) : null)
+//                    .param4(params.getParams().get(3) != null && params.getParams().get(3).length() > 0 ? params.getParams().get(3) : null)
+//                    .param5(params.getParams().get(4) != null && params.getParams().get(4).length() > 0 ? params.getParams().get(4) : null)
+//                    .param6(params.getParams().get(5) != null && params.getParams().get(5).length() > 0 ? params.getParams().get(5) : null)
+//                    .param7(params.getParams().get(6) != null && params.getParams().get(6).length() > 0 ? params.getParams().get(6) : null)
+//                    .param8(params.getParams().get(7) != null && params.getParams().get(7).length() > 0 ? params.getParams().get(7) : null)
+//                    .param9(params.getParams().get(8) != null && params.getParams().get(8).length() > 0 ? params.getParams().get(8) : null)
+//                    .param10(params.getParams().get(9) != null && params.getParams().get(9).length() > 0 ? params.getParams().get(9) : null)
+//                    .param11(params.getParams().get(10) != null && params.getParams().get(10).length() > 0 ? params.getParams().get(10) : null)
+//                    .param12(params.getParams().get(11) != null && params.getParams().get(11).length() > 0 ? params.getParams().get(11) : null)
+//                    .build();
+//            new TestDataManager().getCustomDataManager().sendCustomTestData(data, params.getEnv());
+//        }
+//    }
 
 }
