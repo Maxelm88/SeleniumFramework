@@ -1,8 +1,8 @@
 package helpers.datebase.sql;
 
 import helpers.datebase.dto.CustomTestDTO;
+import helpers.datebase.request.CustomDataRequest;
 import lombok.experimental.UtilityClass;
-
 
 @UtilityClass
 public class SqlQueries {
@@ -44,4 +44,27 @@ public class SqlQueries {
                 data.getParam12());
     }
 
+    public static final String selectDaneWynikowe(CustomDataRequest req) {
+        return String.format("SELECT * FROM `daneWynikowe` \n"
+                        + "WHERE nazwa_testu = '%s' \n"
+                        + "AND nazwa_aplikacji = '%s' \n"
+                        + "AND env = '%s' \n"
+                        + "AND status = '%d' \n",
+                req.getTestName(),
+                req.getAppName(),
+                req.getEnv(),
+                req.getStatus().getStatusId());
+    }
+
+    public static final String updateDaneWynikoweStatus(CustomDataRequest req) {
+        return String.format("UPDATE `daneWynikowe` SET status = 0 \n"
+                        + "WHERE nazwa_testu = '%s' \n"
+                        + "AND nazwa_aplikacji = '%s' \n"
+                        + "AND env = '%s' \n"
+                        + "AND status = '1' \n"
+                        + "LIMIT 1",
+                req.getTestName(),
+                req.getAppName(),
+                req.getEnv());
+    }
 }

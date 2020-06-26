@@ -2,6 +2,8 @@ package mystore;
 
 import helpers.Common;
 import helpers.TestUtils;
+import helpers.datebase.TestDataManager;
+import helpers.datebase.dto.CustomTestDTO;
 import helpers.dictionary.ApplicationName;
 import helpers.dictionary.Profile;
 import helpers.dictionary.PropertyNames;
@@ -16,11 +18,14 @@ public class AbstractMyStoreTest {
     protected static final ApplicationName APP_NAME = ApplicationName.STORE;
     protected static final Profile APP_ENV = PropertyNames.getProfile();
     protected static boolean status = false;
+    protected CustomTestDTO daneTestowe;
+    protected TestDataManager manager;
 
     @Before
     public void setUp() {
         driver = Common.setUpClass();
         StoreCommon.initElement(driver);
+        manager = new TestDataManager();
     }
 
     @After
