@@ -38,10 +38,19 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.safari.ConnectionClosedException;
 import org.openqa.selenium.support.ui.UnexpectedTagNameException;
 
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
+import java.security.spec.KeySpec;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -60,6 +69,17 @@ public class Common {
     private static final String CHROMEPATH = ".\\driver\\chromedriver.exe";
 
     private static ReportManager reporter;
+
+    private static final String key;
+    private static final String salt = "y^[$\\t,;";
+
+    static {
+        if (System.getProperty("key") == null) {
+            throw new NullPointerException("Failed to load default key");
+        } else {
+            key = System.getProperty("key");
+        }
+    }
 
     @Step("Inicjalizacja Webdriver oraz przekazanie testu do realizacji")
     public static WebDriver setUpClass() {
@@ -494,10 +514,10 @@ public class Common {
             initSkippingReporter(ReportManagerFactory.ReporterType.ALLURE);
         }
         if (finalRaport) {
-            reporter().logPass("\n=##################################=");
+            reporter().logPass("=##################################=");
             reporter().logPass("PODSUMOWANIE");
         } else {
-            reporter().logPass("\n=====================================");
+            reporter().logPass("=====================================");
             reporter().logPass("PODSUMOWANIE CZĘSCIOWE");
         }
         reporter().logPass("Data: " + getCurrentDate(""));
@@ -591,5 +611,89 @@ public class Common {
 //            new TestDataManager().getCustomDataManager().sendCustomTestData(data, params.getEnv());
 //        }
 //    }
+
+    public static String encryptAES(String message) {
+        return encryptAES(message, key);
+    }
+
+    public static String encryptAES(String message, String key) {
+        try {
+            if (message == null || key == null) {
+                return null;
+            }
+
+            char[] hexArray = "0123456789ABCDEF".toCharArray();
+
+            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            KeySpec spec = new PBEKeySpec(key.toCharArray(), salt.getBytes(), 65535, 256);
+            SecretKey tmp = factory.generateSecret(spec);
+            Key assKey = new SecretKeySpec(tmp.getEncoded(), "AES");
+
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, assKey);
+
+            byte[] iv = cipher.getParameters().getParameterSpec(IvParameterSpec.class).getIV();
+            char[] ivHexChars = new char[iv.length * 2];
+            for (int i = 0; i < iv.length; i++) {
+                int v = iv[i] & 0xFF;
+                ivHexChars[i * 2] = hexArray[v >>> 4];
+                ivHexChars[i * 2 + 1] = hexArray[v & 0x0F];
+            }
+
+            byte[] encrypted = cipher.doFinal(message.getBytes(StandardCharsets.UTF_8));
+
+            char[] hexChars = new char[encrypted.length * 2];
+            for (int i = 0; i < encrypted.length; i++) {
+                int v = encrypted[i] & 0xFF;
+                hexChars[i * 2] = hexArray[v >>> 4];
+                hexChars[i * 2 + 1] = hexArray[v & 0x0F];
+            }
+
+            return new String(hexChars) + "\n" + new String(ivHexChars);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to encrypt text", e);
+        }
+    }
+
+    public static String decryptAES(String hexMessage) {
+        return descryptAES(hexMessage, key);
+    }
+
+    public static String descryptAES(String hexMessage, String key) {
+        if (hexMessage == null || hexMessage.equals("")) {
+            return "";
+        }
+        try {
+            String[] parts = hexMessage.split("\n");
+
+            if (parts[0].matches(".*\r$")) {
+                parts[0] = parts[0].substring(0, parts[0].length() - 1);
+            }
+
+            int cipherLen = parts[0].length(), ivLen = parts[1].length();
+            byte[] encrypted = new byte[cipherLen / 2];
+            for (int i = 0; i < cipherLen; i += 2) {
+                encrypted[i / 2] = (byte) ((Character.digit(parts[0].charAt(i), 16) << 4)
+                        + Character.digit(parts[0].charAt(i + 1), 16));
+            }
+
+            byte[] iv = new byte[ivLen / 2];
+            for (int i = 0; i < ivLen; i += 2) {
+                iv[i / 2] = (byte) ((Character.digit(parts[1].charAt(i), 16) << 4)
+                        + Character.digit(parts[1].charAt(i + 1), 16));
+            }
+
+            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            KeySpec spec = new PBEKeySpec(key.toCharArray(), salt.getBytes(), 65535, 256);
+            SecretKey tmp = factory.generateSecret(spec);
+            Key assKey = new SecretKeySpec(tmp.getEncoded(), "AES");
+
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.DECRYPT_MODE, assKey, new IvParameterSpec(iv));
+            return new String(cipher.doFinal(encrypted), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to decrypt file", e);
+        }
+    }
 
 }

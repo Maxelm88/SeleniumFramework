@@ -35,7 +35,7 @@ public class Login {
 
         List<String> daneLogowania = new TestDataManager().getDataSelector().getLoginCredentials(app.getDescription(), login, env);
         url = daneLogowania.get(0);
-        pass = daneLogowania.get(2);
+        pass = Common.decryptAES(daneLogowania.get(2));
         Common.reporter().logPass("Uruchomienie przeglądarki z URL: " + url);
 
         Map<ApplicationName, Runnable> loginMap = new HashMap<>();
