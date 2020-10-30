@@ -41,7 +41,7 @@ public class Login {
         Map<ApplicationName, Runnable> loginMap = new HashMap<>();
         loginMap.put(ApplicationName.STORE, () -> loginStore(app.getDescription(), env.name(), driver, login, pass));
 
-        loginMap.get(ApplicationName.getApplicationName(app.getDescription())).run();
+        loginMap.get(ApplicationName.getEnum(app.getDescription())).run();
     }
 
     private static void loginStore(String aplikacja, String srodowisko, WebDriver driver, String loginSave, String pass) {

@@ -1,12 +1,14 @@
 package helpers.datebase;
 
 import helpers.Common;
+import helpers.data.provider.AbstractTestCaseData;
 import helpers.datebase.dto.CustomTestDTO;
 import helpers.datebase.request.CustomDataRequest;
 import helpers.datebase.sql.SqlQueries;
 import helpers.dictionary.Profile;
 import lombok.extern.log4j.Log4j;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;

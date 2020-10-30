@@ -27,6 +27,16 @@ public abstract class ReportManager {
         logPass(text, false);
     }
 
+    public void logPass(String valueName, String value){
+        logPass(String.format("%s: [%s]", valueName, value), false);
+    }
+
+    public void logPassIsNotNull(String valueName, Object value){
+        if(value != null){
+            logPass(valueName, value.toString());
+        }
+    }
+
     public abstract void logFail(String text, Throwable t);
 
     public void logFail(String text) {
