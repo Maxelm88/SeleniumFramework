@@ -10,7 +10,6 @@ import store.StoreCommon;
 public abstract class AbstractMyStoreTest extends AbstractRstWebTest {
     protected static final ApplicationName APP_NAME = ApplicationName.STORE;
     protected static boolean status = false;
-    protected CustomTestDTO daneTestowe;
 
     @Before
     public void initApp() {

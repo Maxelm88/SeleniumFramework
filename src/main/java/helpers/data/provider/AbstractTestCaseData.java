@@ -49,9 +49,9 @@ public abstract class AbstractTestCaseData {
         lp = customTestDTO.getLp();
         jiraTicket = customTestDTO.getNazwaTestu();
         applicationName = ApplicationName.getEnum(customTestDTO.getNazwaAplikacji());
-//        profile = Profile.getEnum(customTestDTO.getEnv());
-//        creationDate = customTestDTO.getCreationDate();
-//        dataRowStatus = customTestDTO.getStatus();
-//        stage = customTestDTO.getEtap();
+        profile = Profile.getEnum(customTestDTO.getEnv());
+        creationDate = customTestDTO.getCreationDate();
+        dataRowStatus = customTestDTO.getStatus();
+        stage = customTestDTO.getEtap();
     }
 }

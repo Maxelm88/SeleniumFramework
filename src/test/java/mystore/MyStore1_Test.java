@@ -3,18 +3,20 @@ package mystore;
 import helpers.Common;
 import helpers.data.provider.AbstractTestCaseData;
 import helpers.data.provider.MyStoreTestCaseData;
+import helpers.dictionary.ApplicationName;
 import helpers.dictionary.DataRowStatus;
 import helpers.login.Login;
+import io.qameta.allure.Issue;
 import io.qameta.allure.junit4.DisplayName;
 import org.junit.Before;
 import org.junit.Test;
 import store.steps.StoreSteps;
 
-@DisplayName("Testowanie My Store")
+@DisplayName(ApplicationName.Names.STORE)
 public class MyStore1_Test extends AbstractMyStoreTest {
 
-    private static final String TEST_NAME = "MyStore1";
     private static final String JIRA_TICKET = "RST-1";
+    private static final String TEST_NAME = JIRA_TICKET + " - Logowanie i wyszukanie słowa Lala";
     private static final String USER = "user@user.pl";
 
     MyStoreTestCaseData inputData;
@@ -49,10 +51,11 @@ public class MyStore1_Test extends AbstractMyStoreTest {
         inputData = new MyStoreTestCaseData(manager, JIRA_TICKET, APP_NAME, APP_ENV);
     }
 
-    @DisplayName("Wyszukiwanie")
+    @DisplayName(TEST_NAME)
+    @Issue(JIRA_TICKET)
     @Test
     public void testMethod() {
-//        Common.reporter().logPass(daneTestowe.getParam1());
+        Common.reporter().logPass(inputData.getUser());
         Common.reporter().logPass(APP_NAME.getDescription());
         Login.loginWeb(APP_NAME, APP_ENV, USER, driver);
         StoreSteps.wyszukanie("Lala");
