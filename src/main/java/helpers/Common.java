@@ -608,7 +608,7 @@ public class Common {
 //            log.info(">>>>> [DB] Zapisywanie do danych testowych <<<<<<");
 //            CustomTestDTO data = CustomTestDTO.builder()
 //                    .nazwaTestu(params.getTestName().split(" ")[0])
-//                    .nazwaAplikacji(params.getAppName().getDescription())
+//                    .applicationName(params.getAppName().getDescription())
 //                    .env(params.getEnv().name())
 //                    .status(params.getStatus())
 //                    .etap(params.getStage())

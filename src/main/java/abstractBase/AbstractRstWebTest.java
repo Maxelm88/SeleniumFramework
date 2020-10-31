@@ -17,8 +17,8 @@ public abstract class AbstractRstWebTest {
     protected static final Profile APP_ENV = PropertyNames.getProfile();
     protected WebDriver driver;
 
-//    @ClassRule
-//    public static RunTest runTest = new RunTest(new SkipChecker(PropertyNames.getSkip()));
+    @ClassRule
+    public static RunTest runTest = new RunTest(new SkipChecker(PropertyNames.getSkip()));
     protected TestDataManager manager;
 
     public abstract AbstractTestCaseData getInputData();
@@ -29,8 +29,6 @@ public abstract class AbstractRstWebTest {
 
     protected abstract void initOutputData();
 
-//    protected abstract void initReporter();
-
     public abstract void testMethod();
 
     @Before
@@ -38,14 +36,13 @@ public abstract class AbstractRstWebTest {
         initOutputData();
         driver = Common.setUpClass();
         initApp();
-//        initReporter();
         initManager();
     }
 
     @After
     public void tearDown() {
-        Common.reportSummaryAndSendResults(getInputData(), APP_ENV);
         Common.quitDriver();
+        Common.reportSummaryAndSendResults(getOutputData(), APP_ENV);
     }
 
     private void initManager() {

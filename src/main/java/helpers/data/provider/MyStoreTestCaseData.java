@@ -6,15 +6,16 @@ import helpers.datebase.TestDataSelect;
 import helpers.datebase.dto.CustomTestDTO;
 import helpers.datebase.request.CustomDataRequest;
 import helpers.dictionary.ApplicationName;
-import helpers.dictionary.DataRowStatus;
 import helpers.dictionary.Profile;
 import helpers.reporter.ReportManager;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @AllArgsConstructor
+@NoArgsConstructor
 @Setter
 @Getter
 @SuperBuilder
@@ -23,14 +24,6 @@ public class MyStoreTestCaseData extends AbstractTestCaseData {
     private String user;
 
     public MyStoreTestCaseData(TestDataManager manager, String inputRst, ApplicationName appName, Profile prof) {
-
-//        CustomDataRequest  req = CustomDataRequest.builder()
-//                .appName(appName.getDescription())
-//                .env(prof)
-//                .testName(inputRst)
-//                .status(DataRowStatus.AKTYWNY)
-//                .build();
-
         CustomDataRequest req = TestDataSelect.getSelectTestData(appName.getDescription(), prof, inputRst);
 
         CustomTestDTO customTestDTO = manager.getCustomDataManager().getCustomTestDataWithParams(req);
@@ -47,7 +40,7 @@ public class MyStoreTestCaseData extends AbstractTestCaseData {
         return CustomTestDTO.builder()
                 .lp(lp)
                 .nazwaTestu(jiraTicket)
-                .nazwaAplikacji(nazwaAplikacji.getDescription())
+                .nazwaAplikacji(applicationName.getDescription())
                 .env(profile.name())
                 .creationDate(creationDate)
                 .status(dataRowStatus)

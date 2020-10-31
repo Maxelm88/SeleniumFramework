@@ -8,7 +8,6 @@ import org.junit.Before;
 import store.StoreCommon;
 
 public abstract class AbstractMyStoreTest extends AbstractRstWebTest {
-        protected static final String SKIP = PropertyNames.getSkip();
     protected static final ApplicationName APP_NAME = ApplicationName.STORE;
     protected static boolean status = false;
     protected CustomTestDTO daneTestowe;

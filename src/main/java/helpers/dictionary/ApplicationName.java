@@ -9,7 +9,9 @@ import java.util.Arrays;
 @Getter
 @AllArgsConstructor
 public enum ApplicationName {
-    STORE(Names.STORE);
+    STORE(Names.STORE),
+    GOOGLE(Names.GOOGLE);
+
     private String description;
 
     public static ApplicationName getEnum(String applicationName) {
@@ -22,5 +24,7 @@ public enum ApplicationName {
     @UtilityClass
     public static class Names {
         public static final String STORE = "Store";
+        public static final String GOOGLE = "Google";
+
     }
 }

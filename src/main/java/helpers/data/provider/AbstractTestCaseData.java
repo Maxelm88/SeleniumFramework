@@ -24,7 +24,7 @@ public abstract class AbstractTestCaseData {
     protected int lp;
     protected String jiraTicket;
     protected String nazwaTestu;
-    protected ApplicationName nazwaAplikacji;
+    protected ApplicationName applicationName;
     protected Profile profile;
     protected Date creationDate;
     protected String stage;
@@ -40,7 +40,7 @@ public abstract class AbstractTestCaseData {
     public void printInReporter(ReportManager reporter) {
         reporter.logPass("Data", DateUtils.getCurrentDate());
         reporter.logPass("Nazwa testu", nazwaTestu);
-        reporter.logPass("Aplikacja", nazwaAplikacji.getDescription());
+        reporter.logPass("Aplikacja", applicationName.getDescription());
         reporter.logPass("Środowisko", profile.name());
         reporter.logPassIsNotNull("Etap", stage);
     }
@@ -48,7 +48,7 @@ public abstract class AbstractTestCaseData {
     protected void setBaseField(CustomTestDTO customTestDTO) {
         lp = customTestDTO.getLp();
         jiraTicket = customTestDTO.getNazwaTestu();
-        nazwaAplikacji = ApplicationName.getEnum(customTestDTO.getNazwaAplikacji());
+        applicationName = ApplicationName.getEnum(customTestDTO.getNazwaAplikacji());
         profile = Profile.getEnum(customTestDTO.getEnv());
         creationDate = customTestDTO.getCreationDate();
         dataRowStatus = customTestDTO.getStatus();
