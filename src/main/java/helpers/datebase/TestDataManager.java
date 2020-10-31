@@ -1,12 +1,15 @@
 package helpers.datebase;
 
 import helpers.Common;
+import helpers.data.provider.AbstractTestCaseData;
 import helpers.datebase.dto.CustomTestDTO;
 import helpers.datebase.request.CustomDataRequest;
 import helpers.datebase.sql.SqlQueries;
+import helpers.dictionary.DataRowStatus;
 import helpers.dictionary.Profile;
 import lombok.extern.log4j.Log4j;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -52,7 +55,11 @@ public class TestDataManager {
                 ResultSet result = Connections.executeSelect(Connections.getDaneWynikoweMysql(req.getEnv()), SqlQueries.selectDaneWynikowe(req));
                 result.next();
                 List<String> out = new ArrayList<>();
+                out.add(result.getString("lp"));
                 out.add(result.getString("nazwa_testu"));
+                out.add(result.getString("nazwa_aplikacji"));
+                out.add(result.getString("etap"));
+                out.add(result.getString("env"));
                 out.add(result.getString("param1"));
                 out.add(result.getString("param2"));
                 out.add(result.getString("param3"));
@@ -94,18 +101,23 @@ public class TestDataManager {
             Common.reporter().logPass("Pobieram dane wejściowe do uruchomienia testu");
             List<String> resp = new TestDataManager().getDataSelector().getDataFromDb(req);
             CustomTestDTO dane = new CustomTestDTO();
-            dane.setParam1(resp.get(1));
-            dane.setParam2(resp.get(2));
-            dane.setParam3(resp.get(3));
-            dane.setParam4(resp.get(4));
-            dane.setParam5(resp.get(5));
-            dane.setParam6(resp.get(6));
-            dane.setParam7(resp.get(7));
-            dane.setParam8(resp.get(8));
-            dane.setParam9(resp.get(9));
-            dane.setParam10(resp.get(10));
-            dane.setParam11(resp.get(11));
-            dane.setParam12(resp.get(12));
+            dane.setLp(Integer.parseInt(resp.get(0)));
+            dane.setNazwaTestu(resp.get(1));
+            dane.setNazwaAplikacji(resp.get(2));
+            dane.setEtap(resp.get(3));
+            dane.setEnv(resp.get(4));
+            dane.setParam1(resp.get(5));
+            dane.setParam2(resp.get(6));
+            dane.setParam3(resp.get(7));
+            dane.setParam4(resp.get(8));
+            dane.setParam5(resp.get(9));
+            dane.setParam6(resp.get(10));
+            dane.setParam7(resp.get(11));
+            dane.setParam8(resp.get(12));
+            dane.setParam9(resp.get(13));
+            dane.setParam10(resp.get(14));
+            dane.setParam11(resp.get(15));
+            dane.setParam12(resp.get(16));
             return dane;
         }
     }

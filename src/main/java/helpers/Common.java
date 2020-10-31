@@ -1,18 +1,22 @@
 package helpers;
 
+import helpers.data.provider.AbstractTestCaseData;
 import helpers.datebase.TestDataManager;
 import helpers.datebase.dto.CustomTestDTO;
 import helpers.dictionary.Browser;
 import helpers.dictionary.BrowserArg;
 import helpers.dictionary.DataRowStatus;
 import helpers.dictionary.Profile;
+import helpers.dictionary.StaticStrings;
 import helpers.reporter.ReportManager;
 import helpers.reporter.ReportManagerFactory;
 import helpers.throwables.ReportSummaryParams;
 import io.qameta.allure.Step;
+import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
+import org.mortbay.log.Log;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
@@ -62,6 +66,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Log4j
+@UtilityClass
 public class Common {
     public static WebDriver driver;
     private static StopWatch stopWatch;
@@ -507,6 +512,18 @@ public class Common {
                 params.getStatus(), params.getStage(), params.isPassed(), params.isFinalReport(), params.getVarArgs());
     }
 
+    public static void reportSummaryAndSendResults(AbstractTestCaseData testCaseData, Profile env){
+        if(testCaseData != null){
+            ReportManager reporter = reporter();
+            initHeaderReport(testCaseData, reporter);
+            testCaseData.printInReporter(reporter);
+            testCaseData.printDetailsInReporter(reporter);
+            initFooterReport(testCaseData, reporter);
+
+            setToDb(testCaseData, env);
+        }
+    }
+
 
     public static void reportSummaryAndSendResults(String testName, String appName, Profile envs, DataRowStatus status,
                                                    String stage, boolean passed, boolean finalRaport, String... params) {
@@ -591,7 +608,7 @@ public class Common {
 //            log.info(">>>>> [DB] Zapisywanie do danych testowych <<<<<<");
 //            CustomTestDTO data = CustomTestDTO.builder()
 //                    .nazwaTestu(params.getTestName().split(" ")[0])
-//                    .nazwaAplikacji(params.getAppName().getDescription())
+//                    .applicationName(params.getAppName().getDescription())
 //                    .env(params.getEnv().name())
 //                    .status(params.getStatus())
 //                    .etap(params.getStage())
@@ -696,4 +713,54 @@ public class Common {
         }
     }
 
+    public static boolean checkSkip(String skip) {
+        if (skip != null) {
+            if (skip.equals("true")) {
+                reporter().skipTest(StaticStrings.TEST_SKIP);
+            } else if (skip.matches("^NO_REQ_DATA: .*$")) {
+                reporter().skipTest(StaticStrings.NO_REQ_DATA + skip.substring(13));
+            } else if (skip.startsWith("NO_DATA_")) {
+                if (skip.startsWith("NO_DATA_FAIL")) {
+                    reporter().logFail("Brak danych testowych: testy zasilające zakończone niepowodzeniem " +
+                            "(" + skip.split(" ")[1] + "; oczekiwano " + skip.split(" ")[2] + ", znaleziono "
+                            + skip.split(" ")[3] + ").");
+                }
+                return true;
+            } else if (skip.contains("JIRA")) {
+                reporter().skipTest(StaticStrings.BUG_FAIL + skip);
+            } else if (skip.equals("ProcesBiznesowy")) {
+                reporter().skipTest(StaticStrings.CHANGE_PROCES);
+            } else {
+                return false;
+            }
+            return false;
+        } else {
+            return false;
+        }
+    }
+
+    private static void initHeaderReport(AbstractTestCaseData testCaseData, ReportManager reporter){
+        if(testCaseData.isFinalReport()) {
+            reporter.logPass("-=##########################=-");
+            reporter.logPass("PODSUMOWANIE");
+        } else {
+            reporter.logPass("===================");
+            reporter.logPass("PODSUMOWANIE CZĘŚCIOWE");
+        }
+    }
+
+    private static void initFooterReport(AbstractTestCaseData testCaseData, ReportManager reporter){
+        if(testCaseData.isFinalReport()){
+            reporter.logPass("-=#####################=-");
+        } else {
+            reporter.logPass("=========================");
+        }
+    }
+
+    private static void setToDb(AbstractTestCaseData testCaseData, Profile env){
+        if(testCaseData.isSendToDb()){
+            Log.info(">>>>>> [DB] Zapisywanie danych testowych <<<<<<<<");
+            new TestDataManager().getCustomDataManager().sendCustomTestData(testCaseData.castToCustomTestDto(), env);
+        }
+    }
 }
