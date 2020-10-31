@@ -46,16 +46,6 @@ public class MyStore1_Test extends AbstractMyStoreTest {
 
     @Before
     public void getDataFromDb() {
-//        select = CustomDataRequest.builder()
-//                .appName(APP_NAME.getDescription())
-//                .env(APP_ENV)
-//                .testName(JIRA_TICKET)
-//                .status(DataRowStatus.AKTYWNY)
-//                .build();
-//
-//        daneTestowe = manager.getCustomDataManager().getCustomTestDataWithParams(select);
-
-        //TODO ogarnąć błąd java.lang.RuntimeException: getEnum - not  find enum
         inputData = new MyStoreTestCaseData(manager, JIRA_TICKET, APP_NAME, APP_ENV);
     }
 
