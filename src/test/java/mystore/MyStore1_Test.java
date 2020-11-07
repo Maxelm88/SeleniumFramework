@@ -55,12 +55,10 @@ public class MyStore1_Test extends AbstractMyStoreTest {
     @Issue(JIRA_TICKET)
     @Test
     public void testMethod() {
-        Common.reporter().logPass(inputData.getUser());
         Common.reporter().logPass(APP_NAME.getDescription());
         Login.loginWeb(APP_NAME, APP_ENV, USER, driver);
         StoreSteps.wyszukanie("Lala");
         outputData.setSendToDb(true);
-        status = true;
     }
 
 }
