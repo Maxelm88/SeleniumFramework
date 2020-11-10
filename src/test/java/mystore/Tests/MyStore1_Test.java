@@ -1,4 +1,4 @@
-package mystore;
+package mystore.Tests;
 
 import helpers.Common;
 import helpers.data.provider.AbstractTestCaseData;
@@ -8,6 +8,7 @@ import helpers.dictionary.DataRowStatus;
 import helpers.login.Login;
 import io.qameta.allure.Issue;
 import io.qameta.allure.junit4.DisplayName;
+import mystore.AbstractMyStoreTest;
 import org.junit.Before;
 import org.junit.Test;
 import store.steps.StoreSteps;
