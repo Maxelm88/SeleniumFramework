@@ -18,7 +18,6 @@ public class MyStore1_Test extends AbstractMyStoreTest {
 
     private static final String JIRA_TICKET = "RST-1";
     private static final String TEST_NAME = JIRA_TICKET + " - Logowanie i wyszukanie słowa Lala";
-    private static final String USER = "user@user.pl";
 
     MyStoreTestCaseData inputData;
     MyStoreTestCaseData outputData;

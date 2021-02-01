@@ -372,11 +372,11 @@ public class Common {
         }
     }
 
-    public static void restoreDefaultTimeouts() {
+    public static void restoreDefaultTimeouts(boolean report) {
         driver.manage().timeouts().implicitlyWait(timeoutInSeconds, TimeUnit.SECONDS);
         driver.manage().timeouts().pageLoadTimeout(timeoutInSeconds, TimeUnit.SECONDS);
         driver.manage().timeouts().setScriptTimeout(timeoutInSeconds, TimeUnit.SECONDS);
-        if (true) {
+        if (report) {
             System.out.println("Przywrócono domyślne czasy implicitlyWait, pageLoadTimeout i setScriptTimeout");
         }
     }
