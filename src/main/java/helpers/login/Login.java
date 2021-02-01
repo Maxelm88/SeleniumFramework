@@ -1,8 +1,6 @@
 package helpers.login;
 
 import helpers.Common;
-import helpers.CommonActions;
-import helpers.CommonAsserts;
 import helpers.CommonWaits;
 import helpers.datebase.TestDataManager;
 import helpers.dictionary.ApplicationName;
@@ -53,13 +51,11 @@ public class Login {
             Common.reporter().logFail(String.format("Problem z wyświetleniem strony logowania: %s - przekroczono limit czasu oczekiwania. Środowisko: %s  URL: %s", aplikacja, srodowisko, url));
         }
         if (CommonWaits.waitUntilElementPresent(StoreHomepage.buttonSignIn.by, 30) != null) {
-            CommonActions.clickElement(StoreHomepage.buttonSignIn);
-            CommonActions.enterIntoTextField(StoreSignInPage.emailAddressField, loginSave);
-            CommonActions.enterIntoTextField(StoreSignInPage.passwordField, pass);
-            CommonActions.clickElement(StoreSignInPage.submitButton);
-            CommonAsserts.assertTrue("Widoczny przycisk " + StoreMyAccountPage.orderHistoryAndDetailsButton.desc,
-                    "Niewidoczny przycisk " + StoreMyAccountPage.orderHistoryAndDetailsButton.desc,
-                    Common.isElementVisible(StoreMyAccountPage.orderHistoryAndDetailsButton, 1));
+            StoreHomepage.buttonSignIn.clickElement();
+            StoreSignInPage.emailAddressField.enterIntoTextField(loginSave);
+            StoreSignInPage.passwordField.enterIntoTextField(pass);
+            StoreSignInPage.submitButton.clickElement();
+            StoreMyAccountPage.orderHistoryAndDetailsButton.shouldBeVisible();
         } else {
             Common.reporter().logFail("Problem z wyświetleniem strony logowania");
         }

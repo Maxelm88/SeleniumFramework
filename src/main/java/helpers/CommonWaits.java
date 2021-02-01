@@ -44,6 +44,22 @@ public class CommonWaits {
         return found;
     }
 
+    @Step("Oczekiwanie na widoczność elementu")
+    public static WebElement waitUntilElementVisible(DescribeBy locator, int timeoutInSeconds) {
+        if (locator == null) {
+            Common.reporter().logError("Cannot wait  for visibility of null element");
+        }
+        WebElement found;
+        Common.driver.manage().timeouts().implicitlyWait(0, TimeUnit.MILLISECONDS);
+        try {
+            found = new WebDriverWait(Common.driver, timeoutInSeconds).until(ExpectedConditions.visibilityOfElementLocated(locator.getBy()));
+        } catch (NoSuchElementException | TimeoutException e) {
+            return null;
+        }
+        Common.restoreDefaultTimeouts(false);
+        return found;
+    }
+
     @Step("Oczekiwanie na zniknięcie elementu")
     public static boolean waitUntilElementStale(WebElement element, int timeoutInSeconds) {
         if (element == null) {
