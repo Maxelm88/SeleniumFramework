@@ -6,7 +6,7 @@ import helpers.data.provider.MyStoreTestCaseData;
 import helpers.dictionary.ApplicationName;
 import helpers.dictionary.DataRowStatus;
 import helpers.login.Login;
-import io.qameta.allure.Issue;
+import io.qameta.allure.TmsLink;
 import io.qameta.allure.junit4.DisplayName;
 import mystore.AbstractMyStoreTest;
 import org.junit.Before;
@@ -53,7 +53,7 @@ public class MyStore1_Test extends AbstractMyStoreTest {
     }
 
     @DisplayName(TEST_NAME)
-    @Issue(JIRA_TICKET)
+    @TmsLink(JIRA_TICKET)
     @Test
     public void testMethod() {
         Common.reporter().logPass(APP_NAME.getDescription());
